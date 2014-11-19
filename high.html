@@ -4,6 +4,24 @@
 <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0" />
 
 <style>
+	html, body {
+		margin: 0;
+		padding: 0;
+	}
+	html {
+		height: 100%;
+	}
+	body {
+		min-height: 100%;
+	}
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+	pre code {
+		padding: 8px;
+		min-height: 100%;
+	}
 	pre code {
 		display: block;
 		outline: none;
@@ -170,19 +188,25 @@
 	function positCaret(x, y) {
 		var cc;
 
-		var actualHeight = window.innerHeight;
+		var actualWidth = window.innerWidth, actualHeight = window.innerHeight;
 	
 		var r;
 		
-		if (0 <= y && y < actualHeight)
-			r = document.caretRangeFromPoint(x,y);
+		// if (0 <= y && y < actualHeight)
+
+		x = Math.max(x, 0);
+		x = Math.min(x, actualWidth - 1);
+		y = Math.max(y, 0);
+		y = Math.min(y, actualHeight - 1);
+
+		r = document.caretRangeFromPoint(x, y);
 		
-		if (!r) {
-			if (y < 0)
-				r = document.caretRangeFromPoint(x, 0);
-			else if (y >= actualHeight)
-				r = document.caretRangeFromPoint(x, actualHeight-1);
-		}
+		// if (!r) {
+		// 	if (y < 0)
+		// 		r = document.caretRangeFromPoint(x, 0);
+		// 	else if (y >= actualHeight)
+		// 		r = document.caretRangeFromPoint(x, actualHeight-1);
+		// }
 		
 		if (r) {
 			cc = r.commonAncestorContainer;
@@ -253,7 +277,7 @@
 		}
 	});
 
-	c.addEventListener("mousemove", function(e) {
+	window.addEventListener("mousemove", function(e) {
 		if (tt) {
 			e.preventDefault();
 
@@ -261,33 +285,35 @@
 
 			t[0] = t[1] = positCaret(e.clientX, e.clientY);
 
-			t[0] = Math.min(tt[0], t[0]);
-			t[1] = Math.max(tt[1], t[1]);
+			if (!isNaN(t[0])) {
+				t[0] = Math.min(tt[0], t[0]);
+				t[1] = Math.max(tt[1], t[1]);
 
-			setCaret(t, c, true);
+				setCaret(t, c, true);
+			}
 		}
 
 
 		// tt = t;
 	});
 
-	c.addEventListener("mouseup", function(e) {
-		e.preventDefault();
+	window.addEventListener("mouseup", function(e) {
+		e.preventDefault(); // c.e.f = function() {};
 
 		tt = false;
 	});
 
-	var reg = /(?:(var)(?=[^a-zA-Z_$0-9]|$)|(if|else|for|in|while|do|with|return|new|break|continue|delete)(?=[^a-zA-Z_$0-9]|$))|(("|')(?:(?!\4)[^\\]|\\.)*?(?:\4|$)|\/\*(?:[^*]|\*(?!\/))*\*\/|\/\/.*$|(\/(?![\/*])(?:[^\\\/\n]|\\[^ ])*\/[gim]*)|([a-zA-Z_$][a-zA-Z_$0-9]*)(?=\s*[=:]\s*function(?:[^a-zA-Z_$0-9]|$))|(apply|bind|call|constructor|toExponential|toFixed|toPrecision|valueOf|charAt|charCodeAt|concat|indexOf|lastIndexOf|localeCompare|length|match|replace|search|slice|split|substr|substring|toLocaleLowerCase|toLocaleUpperCase|toLowerCase|toUpperCase|anchor|big|blink|bold|fixed|fontcolor|fontsize|italics|link|small|strike|sub|sup|every|filter|forEach|join|map|pop|push|reduce|reduceRight|reverse|shift|some|sort|splice|unshift|Date|getDate|getDay|getFullYear|getHours|getMilliseconds|getMinutes|getMonth|getSeconds|getTime|getTimezoneOffset|getUTCDate|getUTCDay|getUTCFullYear|getUTCHours|getUTCMilliseconds|getUTCMinutes|getUTCMonth|getUTCSeconds|getYear|setDate|setFullYear|setHours|setMilliseconds|setMinutes|setMonth|setSeconds|setTime|setUTCDate|setUTCFullYear|setUTCHours|setUTCMilliseconds|setUTCMinutes|setUTCMonth|setUTCSeconds|setYear|toDateString|toGMTString|toLocaleDateString|toLocaleFormat|toLocaleTimeString|toTimeString|toUTCString|parse|UTC|abs|acos|asin|atan|atan2|ceil|cos|exp|floor|log|max|min|pow|random|round|sin|sqrt|tan|exec|test|appendChild|removeChild|replaceChild|cloneNode|compareDocumentPosition|contains|hasAttributes|hasChildNodes|insertBefore|isDefaultNamespace|isEqualNode|lookupNamespaceURI|lookupPrefix|normalize|hasAttribute|getAttribute|setAttribute|removeAttribute|addEventListener|removeEventListener|add|append|remove|caretPositionFromPoint|clear|close|createNodeIterator|createRange|createTreeWalker|elementFromPoint|registerElement|adoptNode|createAttribute|createCDATASection|createComment|createDocumentFragment|createElement|createElementNS|createEntityReference|createEvent|createExpression|createNSResolver|createProcessingInstruction|createTextNode|enableStyleSheetsForSet|evaluate|execCommand|exitPointerLock|getBoxObjectFor|getElementById|getElementsByTagName|getElementsByTagNameNS|getElementsByClassName|getElementsByName|getSelection|hasFocus|importNode|loadOverlay|open|queryCommandSupported|querySelector|querySelectorAll|releaseCapture|write|writeln|back|forward|go|pushState|replaceState|assign|create|defineProperties|defineProperty|freeze|getOwnPropertyDescriptor|getOwnPropertyNames|getOwnPropertySymbols|getPrototypeOf|is|isExtensible|isFrozen|isSealed|keys|preventExtensions|__defineGetter__|__defineSetter__|__lookupGetter__|__lookupSetter__|eval|hasOwnProperty|isPrototypeOf|propertyIsEnumerable|toLocaleString|toSource|toString|unwatch|valueOf|watch|seal|setPrototypeOf)(?=\()|(function)(?=[^a-zA-Z_$0-9]|$)(\s*)((?:[a-zA-Z_$][a-zA-Z_$0-9]*)?)(?:\(([^\)\n]*)\))|(this|window|document)(?=[^a-zA-Z_$0-9]|$)|(0x[0-9a-fA-F]+|[0-9]+|true|false|null|undefined|NaN)(?=[^a-zA-Z_$0-9]|$)|([a-zA-Z_$0-9]+|[\)\]\}]))(\s*\/(?![\/\*]))?|((?:(?!\/\*|\/\/)[=+\-*\/>!]|(?:[|]|&amp;|&lt;)+)(?:[=\+\-]*))/gm;
+	var reg = /(?:(var)(?=[^a-zA-Z_$0-9]|$)|(if|else|for|in|while|do|with|return|new|break|continue|delete|void|typeof|instanceof)(?=[^a-zA-Z_$0-9]|$))|(("|')(?:(?!\4)[^\\]|\\.)*?(?:\4|$)|\/\*(?:[^*]|\*(?!\/))*\*\/|\/\/.*$|(\/(?![\/*])(?:[^\\\/\n]|\\[^ ])*\/[gim]*)|([a-zA-Z_$][a-zA-Z_$0-9.]*(?=\.))?(\.)?([a-zA-Z_$][a-zA-Z_$0-9]*)(?=\s*[=:]\s*function(?:[^a-zA-Z_$0-9]|$))|(\.\s*)?(apply|bind|call|constructor|toExponential|toFixed|toPrecision|valueOf|charAt|charCodeAt|concat|indexOf|lastIndexOf|localeCompare|length|match|replace|search|slice|split|substr|substring|toLocaleLowerCase|toLocaleUpperCase|toLowerCase|toUpperCase|anchor|big|blink|bold|fixed|fontcolor|fontsize|italics|link|small|strike|sub|sup|every|filter|forEach|join|map|pop|push|reduce|reduceRight|reverse|shift|some|sort|splice|unshift|Date|getDate|getDay|getFullYear|getHours|getMilliseconds|getMinutes|getMonth|getSeconds|getTime|getTimezoneOffset|getUTCDate|getUTCDay|getUTCFullYear|getUTCHours|getUTCMilliseconds|getUTCMinutes|getUTCMonth|getUTCSeconds|getYear|setDate|setFullYear|setHours|setMilliseconds|setMinutes|setMonth|setSeconds|setTime|setUTCDate|setUTCFullYear|setUTCHours|setUTCMilliseconds|setUTCMinutes|setUTCMonth|setUTCSeconds|setYear|toDateString|toGMTString|toLocaleDateString|toLocaleFormat|toLocaleTimeString|toTimeString|toUTCString|parse|UTC|abs|acos|asin|atan|atan2|ceil|cos|exp|floor|log|max|min|pow|random|round|sin|sqrt|tan|exec|test|appendChild|removeChild|replaceChild|cloneNode|compareDocumentPosition|contains|hasAttributes|hasChildNodes|insertBefore|isDefaultNamespace|isEqualNode|lookupNamespaceURI|lookupPrefix|normalize|hasAttribute|getAttribute|setAttribute|removeAttribute|addEventListener|removeEventListener|add|append|remove|caretPositionFromPoint|clear|close|createNodeIterator|createRange|createTreeWalker|elementFromPoint|registerElement|adoptNode|createAttribute|createCDATASection|createComment|createDocumentFragment|createElement|createElementNS|createEntityReference|createEvent|createExpression|createNSResolver|createProcessingInstruction|createTextNode|enableStyleSheetsForSet|evaluate|execCommand|exitPointerLock|getBoxObjectFor|getElementById|getElementsByTagName|getElementsByTagNameNS|getElementsByClassName|getElementsByName|getSelection|hasFocus|importNode|loadOverlay|open|queryCommandSupported|querySelector|querySelectorAll|releaseCapture|write|writeln|back|forward|go|pushState|replaceState|assign|create|defineProperties|defineProperty|freeze|getOwnPropertyDescriptor|getOwnPropertyNames|getOwnPropertySymbols|getPrototypeOf|is|isExtensible|isFrozen|isSealed|keys|preventExtensions|__defineGetter__|__defineSetter__|__lookupGetter__|__lookupSetter__|eval|hasOwnProperty|isPrototypeOf|propertyIsEnumerable|toLocaleString|toSource|toString|unwatch|valueOf|watch|seal|setPrototypeOf)(?=\()|(function)(?=[^a-zA-Z_$0-9]|$)(\s*)((?:[a-zA-Z_$][a-zA-Z_$0-9]*)?)(?:\(([^\)\n]*)\))|(this|window|document)(?=[^a-zA-Z_$0-9]|$)|(0x[0-9a-fA-F]+|[0-9]+|true|false|null|undefined|NaN)(?=[^a-zA-Z_$0-9]|$)|((?:\.\s*)?[a-zA-Z_$0-9]+|[\)\]\}]))(\s*\/(?![\/\*]))?|((?:(?!\/\*|\/\/)[=+\-*\/>!]|(?:[|]|&amp;|&lt;)+)(?:[=\+\-]*))/gm;
 
 	function light(a) {
 		return a.replace(reg, 
-			function(a, b, c, dd, d, e, f, g, h, i, j, k, l, m, o, p, n) {
+			function(a, b, c, dd, d, e, ff, fff, f, gg, g, h, i, j, k, l, m, o, p, n) {
 				return	b ? "<i>" + a + "</i>" : 
 						c ? "<strong>" + a + "</strong>" : 
 						(d ? "<u>" + dd + "</u>" : 
 						e ? "<u>" + e + "</u>" : 
-						f ? "<dfn>" + dd + "</dfn>" : 
-						g ? "<em>" + dd + "</em>" : 
+						f ? (ff ? "<em>" + ff + "</em>" : "") + (fff ? fff : "") + "<dfn>" + f + "</dfn>" : 
+						g ? (gg ? gg : "") + "<em>" + g + "</em>" : 
 						h ? "<i>" + h + "</i>" + i + "<dfn>" + j + "</dfn>" + "(<var>" + k + "</var>)" : 
 						l ? "<em>" + l + "</em>" : 
 						m ? "<abbr>" + m + "</abbr>" : 
