@@ -1,0 +1,312 @@
+<!DOCTYPE HTML>
+<title>Select</title>
+
+<meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0" />
+
+<style>
+	body {
+		font-family: avenir, "helvetica neue", sans-serif;
+		margin: 72px;
+	}
+	select {
+		font: 16px/1.2 avenir;
+		border: 1px solid #ddd;
+		padding: 0;
+		margin: 0;
+	}
+	div + select {
+		display: none;
+	}
+	div {
+		position: relative;
+		margin: 15px 0;
+		cursor: default;
+		display: inline-block;
+
+		width: 200px;
+
+		vertical-align: middle;
+
+		transition: background ease 0.3s;
+
+		-webkit-user-select: none;
+
+		-webkit-tap-highlight-color: rgba(0,0,0,0);
+	}
+	div:hover {
+		background: #f3f3f3;
+	}
+	div:focus {
+
+		outline: none;
+	}
+	div p {
+		margin: 0;
+		padding: 5px 1ex;
+
+		white-space:nowrap;
+
+		overflow:hidden;
+		text-overflow: ellipsis;
+	}
+	div ol {
+		position: absolute;
+		margin: 0;
+		padding: 0;
+		
+		list-style: none;
+
+		width: auto;
+
+		min-width: 100%;
+
+		pointer-events: none;
+
+		background: transparent;
+
+		transition: background ease 0.1s;
+
+		z-index: 999;
+	}
+	div:focus ol {
+		pointer-events: all;
+
+		
+
+		transition: background ease 0.3s;
+
+		border-radius: 1px;
+
+		box-shadow: 0 0 1px 3px rgba(59, 153, 252, 0.5), 0 0 0 2px rgba(59, 153, 252, .2);
+	}
+	div ol li {
+		padding: 5px 1ex;
+
+		white-space:nowrap;
+
+		background: #f3f3f3;
+
+		transition: background ease 0.3s, opacity ease 0.3s;
+
+		opacity: 0;
+	}
+	div:focus ol li {
+		opacity: 1;
+
+		transition: background ease 0.3s, opacity ease 0.1s;
+	}
+/*	div.keycontrol ol li.select {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.6s;
+	}
+	div:focus.keycontrol ol li:hover {
+		background: #f3f3f3;
+		transition: background ease 0.3s, opacity ease 0.3s;
+	}
+	div:focus ol li.select, div:focus.keycontrol ol li.select {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.1s;
+	}
+	div:hover ol li.select {
+		background: #f3f3f3;
+		transition: background ease 0.3s, opacity ease 0.3s;
+	}
+	div:hover ol li:hover {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.6s;
+	}
+	div ol li:active {
+		background: #ccc;
+		transition: background linear 0.1s, opacity ease 0.3s;
+	}*/
+
+	div ol li:hover {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.3s;
+	}
+	div ol li.select {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.6s;
+	}
+	div.keycontrol ol li:hover {
+		background: #f3f3f3;
+		transition: background ease 0.3s, opacity ease 0.3s;
+	}
+	div.keycontrol ol li.select {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.6s;
+	}
+	div.keycontrol:focus ol li.select {
+		background: #ddd;
+		transition: background ease 0.3s, opacity ease 0.3s;
+	}
+	div ol li:active {
+		background: #ccc;
+		transition: background linear 0.1s, opacity ease 0.3s;
+	}
+
+</style>
+
+<form>
+	<select name="lang">
+		<option value="0">English</option>
+		<option value="1">Traditional Chinese</option>
+	</select>
+	<select name="sel">
+		<option value="0">Here is the styled select box</option>
+		<option value="1">The second option</option>
+		<option value="2">The third option</option>
+	</select>
+
+	<button type="submit">OK</button>
+</form>
+
+<script>
+	var Select = function() {
+		function Select(el) {
+			this[0] = el;
+			this.options = Array.prototype.map.call(el.querySelectorAll("option"), function(x) { return x.textContent });
+			this.init();
+		}
+
+		Select.prototype.init = function() {
+			var sel = this[0], options = this.options,
+				selectedIndex = sel.selectedIndex, 
+				div = document.createElement("div"), 
+				ol = document.createElement("ol"), 
+				p = document.createElement("p");
+
+			var lis = options.map(function(x) { 
+				var li = document.createElement("li"); 
+				li.textContent = x;
+				return li; 
+			});
+
+			lis.forEach(function(x) { ol.appendChild(x); });
+
+			div.addEventListener("touchend", function(e) {
+				if (document.activeElement !== div) {
+					e.preventDefault();
+
+					div.focus();
+				}
+			});
+
+			div.addEventListener("focus", function(e) {
+				hover(sel.selectedIndex);
+				selectedIndex = sel.selectedIndex;
+				ol.style.top = -selectedIndex * lis[0].offsetHeight + "px";
+				div.classList.add("keycontrol");
+			});
+
+			div.addEventListener("blur", function(e) {
+				hover(sel.selectedIndex);
+				div.classList.add("keycontrol");
+			});
+
+			div.addEventListener("mousemove", function(e) {
+				var li = e.target;
+
+				if (li.nodeName.toUpperCase() === "LI") {
+					var index = lis.indexOf(li);
+
+					if (index !== selectedIndex) {
+						hover(index);
+
+						div.classList.remove("keycontrol");
+					}
+				}
+			});
+
+			div.addEventListener("mouseout", function(e) {
+				if (!div.classList.contains("keycontrol")) {
+					hover(sel.selectedIndex);
+				}
+			});
+
+			div.addEventListener("mousedown", function(e) {
+				var li = e.target;
+
+				if (li.nodeName.toUpperCase() === "LI") {
+					var index = lis.indexOf(li);
+
+					if (index !== selectedIndex) {
+						hover(index);
+
+						div.classList.remove("keycontrol");
+					}
+				}
+			});
+
+			div.addEventListener("keydown", function(e) {
+				switch (e.keyCode) {
+				case 13:
+					sel.selectedIndex = selectedIndex;
+					selected(selectedIndex);
+					div.blur();
+					break;
+				case 27:
+					div.blur();
+					break;
+				case 38:
+					div.classList.add("keycontrol");
+					hover(Math.max(0, selectedIndex - 1));
+					break;
+				case 40:
+					div.classList.add("keycontrol");
+					hover(Math.min(lis.length - 1, selectedIndex + 1));
+					break;
+				}
+				// console.log(e.keyCode);
+			});
+
+			ol.addEventListener("click", function(e) {
+				var li = e.target;
+
+				if (li.nodeName.toUpperCase() === "LI") {
+					var index = lis.indexOf(li);
+
+					div.classList.remove("keycontrol");
+					
+					selected(index);
+					sel.selectedIndex = index;
+					div.blur();
+				}
+			});
+
+			sel.addEventListener("change", function(e) {
+				selected(sel.selectedIndex);
+			});
+
+			selected(sel.selectedIndex);
+
+			ol.start = 0;
+
+			div.tabIndex = "0";
+
+			div.appendChild(p);
+			div.appendChild(ol);
+
+			sel.parentNode.insertBefore(div, sel);
+
+			function hover(index) {
+				lis[selectedIndex].classList.remove("select");
+				selectedIndex = index;
+				lis[selectedIndex].classList.add("select");
+			}
+
+			function selected(index) {
+				p.textContent = options[index];
+
+				console.log(index);
+			}
+		}
+
+		return Select;
+	}();
+
+	var s = Array.prototype.map.call(document.querySelectorAll("select"), function(x) { return new Select(x); });
+
+	console.log(s);
+
+</script>
