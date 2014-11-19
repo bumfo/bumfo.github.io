@@ -130,7 +130,7 @@
 
 		if (endLine > startLine) {
 			offset = endLine - startLine + 1;
-			var insertion = '\t' + lines.slice(startLine, endLine + 1).join('\n\t');
+			var insertion = "\t" + lines.slice(startLine, endLine + 1).join("\n\t");
 
 			c.textContent = value.substring(0, lineStart) + insertion + value.substring(lineEnd);
 
@@ -145,7 +145,7 @@
 
 			console.log(offset);
 
-			c.textContent = value.substring(0, start) + new Array(offset + 1).join('\t') + value.substring(end);
+			c.textContent = value.substring(0, start) + new Array(offset + 1).join("\t") + value.substring(end);
 
 			t[0] = t[1] = start + offset;
 		}
@@ -175,11 +175,11 @@
 		}
 	});
 
-	c.addEventListener('paste', function(e) {
+	c.addEventListener("paste", function(e) {
 		e.preventDefault();
 
 		var t = getCaret(c);
-		var s = e.clipboardData.getData('text/plain');
+		var s = e.clipboardData.getData("text/plain");
 
 		var start = t[0], end = t[1];
 		var value = c.textContent;
