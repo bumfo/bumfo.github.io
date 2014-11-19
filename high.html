@@ -33,6 +33,8 @@
 	code {
 		color: #444;
 		font-family: consolas, menlo, monospace;
+		font-size: 16px;
+		line-height: 1.2;
 	}
 	i {
 		font-weight: bold;
@@ -150,7 +152,6 @@
 	function tabsInsert(value, t, minTabs) {
 		var start = t[0], end = t[1];
 
-		// var value = c.textContent;
 		var lines = value.split("\n");
 
 		var caretLine = getCaretLine(lines, t),
@@ -189,41 +190,34 @@
 	}
 
 	function positCaret(x, y) {
-		var cc;
-
 		var actualWidth = window.innerWidth, actualHeight = window.innerHeight;
 	
 		var r;
-		
-		// if (0 <= y && y < actualHeight)
 
 		x = Math.max(x, 0);
 		x = Math.min(x, actualWidth - 1);
 		y = Math.max(y, 0);
 		y = Math.min(y, actualHeight - 1);
 
-		r = document.caretRangeFromPoint(x, y);
-		
-		// if (!r) {
-		// 	if (y < 0)
-		// 		r = document.caretRangeFromPoint(x, 0);
-		// 	else if (y >= actualHeight)
-		// 		r = document.caretRangeFromPoint(x, actualHeight-1);
-		// }
+		var offsetNode, offset;
+
+		if (document.caretPositionFromPoint) {
+			r = document.caretPositionFromPoint(x, y);
+
+			console.log(r);
+
+			offsetNode = r.offsetNode;
+			offset = r.offset;
+		} else {
+			r = document.caretRangeFromPoint(x, y);
+
+			offsetNode = r.startContainer;
+			offset = r.startOffset;
+		}
 		
 		if (r) {
-			cc = r.commonAncestorContainer;
-			
-			// var s = window.getSelection();
-			// s.removeAllRanges();
-			// s.addRange(r);
-
-			return Caret.get(r.startContainer, r.startOffset, c);
+			return Caret.get(offsetNode, offset, c);
 		}
-
-		
-		
-		// return cc;
 	}
 
 	c.addEventListener("keydown", function(e) {
@@ -267,8 +261,6 @@
 	var tt = false;
 
 	c.addEventListener("dblclick", function(e) {
-		// console.log(e);
-
 		var value = c.textContent;
 
 		var s = window.getSelection();
@@ -364,7 +356,7 @@
 	});
 
 	window.addEventListener("mouseup", function(e) {
-		e.preventDefault(); // c.prototype().f = function() {};
+		e.preventDefault();
 
 		tt = false;
 	});
@@ -452,12 +444,19 @@
 		var s = window.getSelection(), r;
 
 		if (ro) {
+			if (document.activeElement !== c)
+				c.focus();
+
 			s.removeAllRanges();
 
 			r = document.createRange();
 
 			Caret.set(y, ro[0], r.setStart.bind(r));
-			Caret.set(y, ro[1], r.setEnd.bind(r));
+			
+			if (ro[0] === ro[1])
+				r.collapse(true);
+			else
+				Caret.set(y, ro[1], r.setEnd.bind(r));
 
 			s.addRange(r);
 
