@@ -1,6 +1,8 @@
 <!DOCTYPE HTML>
 <title>High</title>
 
+<meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0" />
+
 <style>
 	pre code {
 		display: block;
@@ -12,7 +14,7 @@
 	}
 	code {
 		color: #444;
-		font-family: consolas, monospace;
+		font-family: consolas, menlo, monospace;
 	}
 	i {
 		font-weight: bold;
@@ -20,6 +22,10 @@
 	s {
 		color: #999;
 		text-decoration: none;
+	}
+	dfn {
+		color: #222;
+		font-style: normal;
 	}
 
 </style>
@@ -59,6 +65,7 @@
 	}
 	dfn {
 		color: #222;
+		color: red;
 		font-style: normal;
 	}
 	abbr {
@@ -76,8 +83,7 @@
 	var c = document.querySelector("code");
 
 	document.addEventListener("DOMContentLoaded", function() {
-		c.textContent = document.querySelector("script").innerHTML;
-		update();
+		update(document.querySelector("script").innerHTML);
 
 		c.contentEditable = true;
 		c.spellcheck = false;
@@ -85,7 +91,7 @@
 
 	c.addEventListener("input", function() {
 		var t = getCaret(c);
-		update();
+		update(c.textContent);
 		setCaret(t, c);
 	});
 
@@ -120,10 +126,10 @@
 		return startLine > 0 ? lines[startLine - 1].match(/^\t*/)[0].length : 0;
 	}
 
-	function tabsInsert(t, minTabs) {
+	function tabsInsert(value, t, minTabs) {
 		var start = t[0], end = t[1];
 
-		var value = c.textContent;
+		// var value = c.textContent;
 		var lines = value.split("\n");
 
 		var caretLine = getCaretLine(lines, t),
@@ -136,7 +142,7 @@
 			offset = endLine - startLine + 1;
 			var insertion = "\t" + lines.slice(startLine, endLine + 1).join("\n\t");
 
-			c.textContent = value.substring(0, lineStart) + insertion + value.substring(lineEnd);
+			value = value.substring(0, lineStart) + insertion + value.substring(lineEnd);
 
 			t[0] = start + 1;
 			t[1] = end + offset;
@@ -147,12 +153,50 @@
 
 			offset = Math.max(minTabs === void(0) ? 1: minTabs, offset);
 
-			console.log(offset);
+			console.log(offset, t.slice());
 
-			c.textContent = value.substring(0, start) + new Array(offset + 1).join("\t") + value.substring(end);
+			value = value.substring(0, start) + new Array(offset + 1).join("\t") + value.substring(end);
 
 			t[0] = t[1] = start + offset;
 		}
+
+		return value;
+	}
+
+	function tabsRemove() {
+
+	}
+
+	function positCaret(x, y) {
+		var cc;
+
+		var actualHeight = window.innerHeight;
+	
+		var r;
+		
+		if (0 <= y && y < actualHeight)
+			r = document.caretRangeFromPoint(x,y);
+		
+		if (!r) {
+			if (y < 0)
+				r = document.caretRangeFromPoint(x, 0);
+			else if (y >= actualHeight)
+				r = document.caretRangeFromPoint(x, actualHeight-1);
+		}
+		
+		if (r) {
+			cc = r.commonAncestorContainer;
+			
+			// var s = window.getSelection();
+			// s.removeAllRanges();
+			// s.addRange(r);
+
+			return Caret.get(r.startContainer, r.startOffset, c);
+		}
+
+		
+		
+		// return cc;
 	}
 
 	c.addEventListener("keydown", function(e) {
@@ -162,8 +206,7 @@
 			e.preventDefault();
 
 			var t = getCaret(c);
-			tabsInsert(t);
-			update();
+			update(tabsInsert(c.textContent, t));
 			setCaret(t, c);
 		} else if (keyCode === 13) {
 			e.preventDefault();
@@ -171,10 +214,9 @@
 			var t = getCaret(c);
 			var start = t[0], end = t[1];
 			var value = c.textContent;
-			c.textContent = value.substring(0, start) + "\n" + value.substring(end);
+			value = value.substring(0, start) + "\n" + value.substring(end);
 			t[1] = t[0] = start + 1;
-			tabsInsert(t, 0);
-			update();
+			update(tabsInsert(value, t, 0));
 			setCaret(t, c);
 		}
 	});
@@ -187,17 +229,58 @@
 
 		var start = t[0], end = t[1];
 		var value = c.textContent;
-		c.textContent = value.substring(0, start) + s + value.substring(end);
 
 		t[1] = t[0] = t[0] + s.length;
 
-		update();
+		update(value.substring(0, start) + s + value.substring(end));
 
 		setCaret(t, c);
 	});
 
+	var tt = false;
+
+	c.addEventListener("mousedown", function(e) {
+		if (e.button === 0) {
+			e.preventDefault();
+
+			var t = [];
+
+			t[0] = t[1] = positCaret(e.clientX, e.clientY);
+
+			setCaret(t, c, true);
+
+			tt = t;
+		}
+	});
+
+	c.addEventListener("mousemove", function(e) {
+		if (tt) {
+			e.preventDefault();
+
+			var t = [];
+
+			t[0] = t[1] = positCaret(e.clientX, e.clientY);
+
+			t[0] = Math.min(tt[0], t[0]);
+			t[1] = Math.max(tt[1], t[1]);
+
+			setCaret(t, c, true);
+		}
+
+
+		// tt = t;
+	});
+
+	c.addEventListener("mouseup", function(e) {
+		e.preventDefault();
+
+		tt = false;
+	});
+
+	var reg = /(?:(var)(?=[^a-zA-Z_$0-9]|$)|(if|else|for|in|while|do|with|return|new|break|continue|delete)(?=[^a-zA-Z_$0-9]|$))|(("|')(?:(?!\4)[^\\]|\\.)*?(?:\4|$)|\/\*(?:[^*]|\*(?!\/))*\*\/|\/\/.*$|(\/(?![\/*])(?:[^\\\/\n]|\\[^ ])*\/[gim]*)|([a-zA-Z_$][a-zA-Z_$0-9]*)(?=\s*[=:]\s*function(?:[^a-zA-Z_$0-9]|$))|(apply|bind|call|constructor|toExponential|toFixed|toPrecision|valueOf|charAt|charCodeAt|concat|indexOf|lastIndexOf|localeCompare|length|match|replace|search|slice|split|substr|substring|toLocaleLowerCase|toLocaleUpperCase|toLowerCase|toUpperCase|anchor|big|blink|bold|fixed|fontcolor|fontsize|italics|link|small|strike|sub|sup|every|filter|forEach|join|map|pop|push|reduce|reduceRight|reverse|shift|some|sort|splice|unshift|Date|getDate|getDay|getFullYear|getHours|getMilliseconds|getMinutes|getMonth|getSeconds|getTime|getTimezoneOffset|getUTCDate|getUTCDay|getUTCFullYear|getUTCHours|getUTCMilliseconds|getUTCMinutes|getUTCMonth|getUTCSeconds|getYear|setDate|setFullYear|setHours|setMilliseconds|setMinutes|setMonth|setSeconds|setTime|setUTCDate|setUTCFullYear|setUTCHours|setUTCMilliseconds|setUTCMinutes|setUTCMonth|setUTCSeconds|setYear|toDateString|toGMTString|toLocaleDateString|toLocaleFormat|toLocaleTimeString|toTimeString|toUTCString|parse|UTC|abs|acos|asin|atan|atan2|ceil|cos|exp|floor|log|max|min|pow|random|round|sin|sqrt|tan|exec|test|appendChild|removeChild|replaceChild|cloneNode|compareDocumentPosition|contains|hasAttributes|hasChildNodes|insertBefore|isDefaultNamespace|isEqualNode|lookupNamespaceURI|lookupPrefix|normalize|hasAttribute|getAttribute|setAttribute|removeAttribute|addEventListener|removeEventListener|add|append|remove|caretPositionFromPoint|clear|close|createNodeIterator|createRange|createTreeWalker|elementFromPoint|registerElement|adoptNode|createAttribute|createCDATASection|createComment|createDocumentFragment|createElement|createElementNS|createEntityReference|createEvent|createExpression|createNSResolver|createProcessingInstruction|createTextNode|enableStyleSheetsForSet|evaluate|execCommand|exitPointerLock|getBoxObjectFor|getElementById|getElementsByTagName|getElementsByTagNameNS|getElementsByClassName|getElementsByName|getSelection|hasFocus|importNode|loadOverlay|open|queryCommandSupported|querySelector|querySelectorAll|releaseCapture|write|writeln|back|forward|go|pushState|replaceState|assign|create|defineProperties|defineProperty|freeze|getOwnPropertyDescriptor|getOwnPropertyNames|getOwnPropertySymbols|getPrototypeOf|is|isExtensible|isFrozen|isSealed|keys|preventExtensions|__defineGetter__|__defineSetter__|__lookupGetter__|__lookupSetter__|eval|hasOwnProperty|isPrototypeOf|propertyIsEnumerable|toLocaleString|toSource|toString|unwatch|valueOf|watch|seal|setPrototypeOf)(?=\()|(function)(?=[^a-zA-Z_$0-9]|$)(\s*)((?:[a-zA-Z_$][a-zA-Z_$0-9]*)?)(?:\(([^\)\n]*)\))|(this|window|document)(?=[^a-zA-Z_$0-9]|$)|(0x[0-9a-fA-F]+|[0-9]+|true|false|null|undefined|NaN)(?=[^a-zA-Z_$0-9]|$)|([a-zA-Z_$0-9]+|[\)\]\}]))(\s*\/(?![\/\*]))?|((?:(?!\/\*|\/\/)[=+\-*\/>!]|(?:[|]|&amp;|&lt;)+)(?:[=\+\-]*))/gm;
+
 	function light(a) {
-		return a.replace(/(?:(var)(?=[^a-zA-Z_$0-9]|$)|(if|else|for|in|while|do|with|return|new|break|continue|delete)(?=[^a-zA-Z_$0-9]|$))|(("|')(?:(?!\4)[^\\]|\\.)*?(?:\4|$)|\/\*(?:[^*]|\*(?!\/))*\*\/|\/\/.*$|(\/(?![\/*])(?:[^\\\/\n]|\\[^ ])*\/[gim]*)|([a-zA-Z_$][a-zA-Z_$0-9]*)(?=\s*[=:]\s*function)|(apply)(?=\()|(function)(?=[^a-zA-Z_$0-9]|$)(\s*)((?:[a-zA-Z_$][a-zA-Z_$0-9]*)?)(?:\(([^\)]*)\))|(this|window|document)(?=[^a-zA-Z_$0-9]|$)|(0x[0-9a-fA-F]+|[0-9]+|true|false|null|undefined|NaN)(?=[^a-zA-Z_$0-9]|$)|([a-zA-Z_$0-9]+|[\)\]\}]))(\s*\/(?![\/\*]))?|((?:(?!\/\*|\/\/)[=+\-*\/>!]|(?:[|]|&amp;|&lt;)+)(?:[=\+\-]*))/gm, 
+		return a.replace(reg, 
 			function(a, b, c, dd, d, e, f, g, h, i, j, k, l, m, o, p, n) {
 				return	b ? "<i>" + a + "</i>" : 
 						c ? "<strong>" + a + "</strong>" : 
@@ -218,8 +301,8 @@
 		return x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 	}
 
-	function update() {
-		c.innerHTML = light(encode(c.textContent));
+	function update(value) {
+		c.innerHTML = light(encode(value));
 	}
 
 	var Caret = function() {
@@ -273,14 +356,21 @@
 			[Caret.get(r.startContainer, r.startOffset, x), Caret.get(r.endContainer, r.endOffset, x)] : false;
 	}
 
-	function setCaret(ro, y) {
-		var s = window.getSelection(), r = document.createRange();
+	function setCaret(ro, y, user) {
+		var s = window.getSelection(), r;
 
 		if (ro) {
+			s.removeAllRanges();
+
+			r = document.createRange();
+
 			Caret.set(y, ro[0], r.setStart.bind(r));
 			Caret.set(y, ro[1], r.setEnd.bind(r));
-			s.removeAllRanges();
+
 			s.addRange(r);
+
+			if (!user)
+				tt = false;
 		}
 	}
 }());
