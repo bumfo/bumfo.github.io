@@ -45,6 +45,9 @@
 		color: #222;
 		font-style: normal;
 	}
+	abbr {
+		color: #666;
+	}
 
 </style>
 <!--<style>
@@ -263,6 +266,69 @@
 
 	var tt = false;
 
+	c.addEventListener("dblclick", function(e) {
+		// console.log(e);
+
+		var value = c.textContent;
+
+		var s = window.getSelection();
+
+		var d = ['forward', 'backward'];
+
+		var endNode = s.focusNode, endOffset = s.focusOffset;
+		
+		s.collapse(s.anchorNode, s.anchorOffset);
+
+		s.modify("move", d[1], "character");
+		s.extend(endNode, endOffset);
+		s.modify("extend", d[0], "character");
+
+		var t = getCaret(c);
+
+		console.log(t);
+
+		var w = /\w/, o = /[\t=+\-*\/!()\[\]\{\},:;]/;
+
+		var ss = [value[t[1] - 1], value[t[0]]];
+
+		if (w.test(ss[0])) {
+			s.modify("move", d[0], "character");
+			s.modify("move", d[1], "word");
+
+			s.extend(endNode, endOffset);
+			s.modify("extend", d[0], "word");
+		} else if (w.test(ss[1])) {
+			s.modify("move", d[1], "character");
+			s.modify("move", d[0], "word");
+
+			s.extend(endNode, endOffset);
+			s.modify("extend", d[1], "word");
+		} else {
+			var o0 = o.test(ss[0]), o1 = o.test(ss[1]);
+			if (o1)
+				s.modify("move", d[1], "character");
+
+			while (o1) {
+				if (o.test(value[t[0]-1])) {
+					s.modify("move", d[1], "character");
+					--t[0];
+				} else
+					o1 = false;
+			} 
+
+			s.extend(endNode, endOffset);
+			s.modify("extend", d[0], "character");
+
+			while (o0) {
+				if (o.test(value[t[1]])) {
+					s.modify("extend", d[0], "character");
+					++t[1];
+				} else
+					o0 = false;
+			} 
+		}
+	});
+
 	c.addEventListener("mousedown", function(e) {
 		if (e.button === 0) {
 			e.preventDefault();
@@ -298,7 +364,7 @@
 	});
 
 	window.addEventListener("mouseup", function(e) {
-		e.preventDefault(); // c.e.f = function() {};
+		e.preventDefault(); // c.prototype().f = function() {};
 
 		tt = false;
 	});
