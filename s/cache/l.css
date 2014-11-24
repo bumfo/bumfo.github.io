@@ -106,6 +106,7 @@ form {
     position: relative;
     padding: 0;
     margin: -0.5rem 3ex -0.5rem -1ex;
+    margin-bottom: 0.6rem;
     width: 18rem;
     overflow: hidden;
     vertical-align: top; }
@@ -118,13 +119,13 @@ form {
       height: 1px;
       pointer-events: none;
       -webkit-appearance: none; }
-      form fieldset > input.com {
+      form fieldset > input, form fieldset > input.com, form fieldset > input.bey {
         width: 0;
         height: 0;
         font-size: 1px;
-        opacity: 0; }
-      form fieldset > input.bey {
-        top: -999px; }
+        opacity: 0;
+        position: fixed;
+        text-indent: -999px; }
       form fieldset > input:focus {
         outline: none;
         border-color: black; }

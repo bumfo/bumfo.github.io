@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<!-- <link rel="stylesheet" href="s/scss.php/l.css" /> -->
-<link rel="stylesheet" href="s/cache/l.css" />
+<link rel="stylesheet" href="s/scss.php/l.css" />
+<!-- <link rel="stylesheet" href="s/cache/l.css" /> -->
 
 <title>L</title>
 
@@ -16,145 +16,139 @@
 <script>
 "use strict";
 
-var form = document.querySelector("form"), 
-	ps = document.querySelectorAll("form input"), 
-	output = document.querySelector('output'), 
-	com = compatible(), p1, p2;
+var Input = function() {
+	function Input(o) {
+		var self = this;
 
-function compatible(userAgent) {
-	userAgent = navigator.userAgent;
-
-	if (userAgent.match(/Mobile\/(12[A-Z0-9]+)/g) && !userAgent.match(/Version\/(?:8|9|\d\d)/))
-		return true;
-
-	return false;
-}
-
-function On(o) {
-	return {
-		on: function(x, f) {
-
-			function a(ev, f) {
-
-				function a(ev, f) {
-					o.addEventListener(ev, f);
-				}
-
-				if (ev.indexOf('|') !== -1)
-					ev = ev.split('|');
-
-				if (Array.isArray(ev))
-					ev.forEach(function(ev){ a(ev, f); });
-				else
-					a(ev, f);
-			}
-
-			if (typeof x === 'string' || Array.isArray(x))
-				a(x, f);
-			else
-				for (var i in x) a(i, x[i]);
-		}
-	}
-}
-
-function Input(o) {
-
-	var parent = o.parentNode, 
-		info = {
+		self[0] = o;
+		self.info = {
 			placeholder: o.getAttribute('placeholder'),
-			isPassword: o.getAttribute('type') === 'password',
-			focused: false,
-			val: '',
-			lo: [0, 0]
+			secretly: o.getAttribute('type') === 'password'
 		};
+		self.status = {
+			focused: false,
+			value: '',
+			text: '',
+			caret: [0, 0]
+		};
+		self.body = objMap({
+			field: "fieldset", 
+			text: "legend",
+			caret: "span",
+			measure: "div",
+			mask: "label"
+		}, function(x) {
+			return document.createElement(x);
+		});
 
-	function init(legend, span, div, label) {
-		var field = this, children = [].slice.call(arguments);
+		o.parentNode.replaceChild(self.body.field, o);
+		self.body.field.appendChild(o);
+		objReduce(self.body, function(b, x) {
+			b.appendChild(x);
+			return b;
+		});
 
-		function onFocus(e) {
-			
-		}
+		self.body.mask.textContent = self.info.placeholder;
+		self.body.mask.htmlFor = o.id;
+		self.body.measure.classList.add("wt");
 
-		function onInput(e) {
-			var val = e.target.value; info.val = val;
-			legend.textContent = val;
-
-			if (info.placeholder.indexOf(val) === 0) {
-				label.classList.remove('hid');
-				if (val === "")
-					label.classList.remove('ac');
-				else
-					label.classList.add('ac');
-			} else {
-				label.classList.add('hid');
-				label.classList.remove('ac');
+		on(o, {
+			focus: function(e) {
+				self.onFocus(e);
+			},
+			input: function(e) {
+				self.onInput(e);
+				self.onCaret(e);
+			},
+			keydown: function(e) {
+				switch (e.keyCode) {
+				case 37:
+				case 39:
+					setTimeout(function(){ self.onCaret(e); });
+					break;
+				}
 			}
-
-			onCaret(e);
-		}
-
-		function onCaret(e) {
-			var lo = [e.target.selectionStart, e.target.selectionEnd]; info.lo = lo;
-			console.log(lo);
-			output.textContent = lo.join(', ');
-
-			div.textContent = info.val.substring(0, lo[1]);
-			span.style.left = div.clientWidth + 'px';
-
-			span.classList.add("nocaret"); setTimeout(function() { span.classList.remove("nocaret"); });
-		}
+		});
 
 		function focusDemanded(e) {
-			o.focus();
-			caretToEnd(o);
 			e.preventDefault();
+			self.focus();
 		}
 
-		if (com)
-			o.classList.add('com');
-		else
-			o.classList.add('bey');
-
-		div.classList.add('wt');
-
-		children.forEach(function(x) {
-			field.appendChild(x);
-		});
-
-		parent.replaceChild(field, o);
-		field.insertBefore(o, field.firstChild);
-
-		label.htmlFor = o.id;
-		label.textContent = info.placeholder;
-
-		On(o).on({
-			"input": onInput,
-			"keydown": function(e) {
-				switch (e.keyCode) {
-					case 37:
-					case 39:
-						setTimeout(function(){ onCaret(e); });
-						break;
-				}
-			}
-		});
-
-		On(label).on({
-			"touchend|mousedown": focusDemanded
-		})
+		on(self.body.mask, { "touchend|mousedown": focusDemanded });
 	}
 
-	init.call.apply(init, ["fieldset", "legend", "span", "div", "label"].map(function(x) { return document.createElement(x); }));
-}
+	Input.prototype.focus = function() {
+		this[0].focus();
+		caretToEnd(this[0]);
+	};
 
+	Input.prototype.onFocus = function(e) {
+		var self = this;
 
-// try {
-	p1 = new Input(ps[0]);
-	p2 = new Input(ps[1]);
-// } catch(ex) {
-	// alert(ex.line + ": " + ex);
-	// console.log(ex);
-// }
+		setTimeout(function() {
+			caretToEnd(self[0]);
+		});
+		
+	};
+
+	Input.prototype.onInput = function(e) {
+		var value = this.status.value = e.target.value;
+		this.status.text = this.body.text.textContent = this.info.secretly ? value.replace(/./g, "\u2022") : value; //\u2022
+
+		if (value.length === 0) {
+			this.body.mask.classList.remove('hid');
+			this.body.mask.classList.remove('ac');
+		} else {
+			if (!this.info.secretly && this.info.placeholder.indexOf(value) === 0) {
+				this.body.mask.classList.remove('hid');
+				this.body.mask.classList.add('ac');
+			} else {
+				this.body.mask.classList.add('hid');
+				this.body.mask.classList.remove('ac');
+			}
+		}
+	};
+
+	Input.prototype.onCaret = function(e) {
+		var self = this;
+
+		var caret = [e.target.selectionStart, e.target.selectionEnd]; this.status.caret = caret;
+		output.textContent = caret.join(', ');
+
+		self.body.measure.textContent = self.status.text.substring(0, caret[1]);
+		self.body.caret.style.left = self.body.measure.clientWidth + 'px';
+
+		self.body.caret.classList.add("nocaret"); 
+		setTimeout(function() { self.body.caret.classList.remove("nocaret"); });
+	};
+
+	return Input;
+}();
+
+var on = function() {
+	return function on(o, x, f) {
+		function a(ev, f) {
+
+			function a(ev, f) {
+				o.addEventListener(ev, f);
+			}
+
+			if (ev.indexOf('|') !== -1)
+				ev = ev.split('|');
+
+			if (Array.isArray(ev))
+				ev.forEach(function(ev){ a(ev, f); });
+			else
+				a(ev, f);
+		}
+
+		if (typeof x === 'string' || Array.isArray(x))
+			a(x, f);
+		else
+			for (var i in x) a(i, x[i]);
+	}
+}();
 
 function Caret(x1, x2) {
 	var _x1 = x1, _x2 = x2;
@@ -186,5 +180,46 @@ function caretTo(o, x1, x2) {
 function caretToEnd(o) {
 	o.selectionStart = o.selectionEnd = o.value.length;
 }
+
+function objMap(a, f) {
+	var b = Object.create(null);
+
+	objEach(a, function(x, i) {
+		b[i] = f(x);
+	});
+
+	return b;
+}
+
+function objReduce(a, f, b) {
+	if (b !== void(0))
+		objEach(a, function(x, i) {
+			b = f(b, x, i, a);
+		});
+	else
+		objEach(a, function(x, i) {
+			if (b === void(0))
+				b = x;
+			else
+				b = f(b, x, i, a);
+		});
+
+	return b;
+}
+
+function objEach(a, f) {
+	for (var i in a) {
+		if (Object.prototype.hasOwnProperty.call(a, i)) {
+			f(a[i], i, a);
+		}
+	}
+}
+
+var form = document.querySelector("form"), 
+	p = document.querySelectorAll("form input"), 
+	output = document.querySelector('output'),
+	ps = Array.prototype.map.call(p, function(x) { return new Input(x); })
+
+
 
 </script>
