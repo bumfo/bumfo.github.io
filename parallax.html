@@ -1,6 +1,8 @@
 <!DOCTYPE HTML>
 <title>Parallax</title>
 
+<meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0" />
+
 <style>
 html, body {
 	margin: 0;
@@ -11,6 +13,15 @@ html {
 }
 body {
 	height: 100%;
+
+	font: 16px/1.4 "avenir next", "avenir", sans-serif;
+}
+header {
+	font: 22px/60px "avenir next", "avenir", sans-serif;
+	font-weight: 100;
+}
+article {
+	height: 550%;
 }
 section, .placeholder {
 	height: 19.182%;/*20%;*/
@@ -26,11 +37,26 @@ section {
 
 	font: 72px avenir, sans-serif;
 }
-article {
-	height: 550%;
+section.child1 {
+	background: #fff;
+	color: #333;
+}
+section.child2 {
+	background: rgba(230,230,230,0.9);
+}
+section.child3 {
+	background: rgba(207,207,207,0.9);
+}
+section.child4 {
+	background: rgba(186,186,186,0.9);
+}
+section.child5 {
+	background: rgba(167,167,167,0.9);
 }
 footer {
 	text-align: center;
+	line-height: 40px;
+	font-weight: 100;
 }
 .sticky {
 	position: fixed;
@@ -43,14 +69,15 @@ footer {
 }
 </style>
 
+<header>Sticky</header>
 <article>
-	<section>1</section>
-	<section>2</section>
-	<section>3</section>
-	<section>4</section>
-	<section>5</section>
+	<section class="child1">1</section>
+	<section class="child2">2</section>
+	<section class="child3">3</section>
+	<section class="child4">4</section>
+	<section class="child5">5</section>
 </article>
-<footer>Thank you! </footer>
+<footer>&copy; Copyleft 2014</footer>
 
 <script>
 var Sticky = function() {
@@ -110,15 +137,13 @@ var Sticky = function() {
 		console.log(top);
 
 		if (top > window.pageYOffset && fixed) {
-			placeholder.parentNode.removeChild(placeholder);
-
 			o.classList.remove("sticky");
+			placeholder.parentNode.removeChild(placeholder);
 
 			fixed = false;
 		} else if (top <= window.pageYOffset && !fixed) {
-			o.parentNode.insertBefore(placeholder, o);
-
 			o.classList.add("sticky");
+			o.parentNode.insertBefore(placeholder, o);
 
 			fixed = true;
 		}
