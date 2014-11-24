@@ -57,7 +57,7 @@ table {
 html {
   text-rendering: optimizeLegibility;
   text-rendering: geometricPrecision;
-  -webkit-font-feature-settings: "liga", "clig", "dlig";
+  -webkit-font-feature-settings: "liga", "clig";
   -webkit-transform: translate3d(0, 0, 0); }
 
 form fieldset > legend, form fieldset .wt {
