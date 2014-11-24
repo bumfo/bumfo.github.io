@@ -1,0 +1,190 @@
+<!DOCTYPE HTML>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- <link rel="stylesheet" href="s/scss.php/l.css" /> -->
+<link rel="stylesheet" href="s/cache/l.css" />
+
+<title>L</title>
+
+<form method="POST" action="303.php">
+  <input name="p1" id="p1" placeholder="username" />
+  <input name="p2" id="p2" type="password" placeholder="password" />
+  <output></output>
+  <!-- <button>Submit</button> -->
+</form>
+
+<script>
+"use strict";
+
+var form = document.querySelector("form"), 
+	ps = document.querySelectorAll("form input"), 
+	output = document.querySelector('output'), 
+	com = compatible(), p1, p2;
+
+function compatible(userAgent) {
+	userAgent = navigator.userAgent;
+
+	if (userAgent.match(/Mobile\/(12[A-Z0-9]+)/g) && !userAgent.match(/Version\/(?:8|9|\d\d)/))
+		return true;
+
+	return false;
+}
+
+function On(o) {
+	return {
+		on: function(x, f) {
+
+			function a(ev, f) {
+
+				function a(ev, f) {
+					o.addEventListener(ev, f);
+				}
+
+				if (ev.indexOf('|') !== -1)
+					ev = ev.split('|');
+
+				if (Array.isArray(ev))
+					ev.forEach(function(ev){ a(ev, f); });
+				else
+					a(ev, f);
+			}
+
+			if (typeof x === 'string' || Array.isArray(x))
+				a(x, f);
+			else
+				for (var i in x) a(i, x[i]);
+		}
+	}
+}
+
+function Input(o) {
+
+	var parent = o.parentNode, 
+		info = {
+			placeholder: o.getAttribute('placeholder'),
+			isPassword: o.getAttribute('type') === 'password',
+			focused: false,
+			val: '',
+			lo: [0, 0]
+		};
+
+	function init(legend, span, div, label) {
+		var field = this, children = [].slice.call(arguments);
+
+		function onFocus(e) {
+			
+		}
+
+		function onInput(e) {
+			var val = e.target.value; info.val = val;
+			legend.textContent = val;
+
+			if (info.placeholder.indexOf(val) === 0) {
+				label.classList.remove('hid');
+				if (val === "")
+					label.classList.remove('ac');
+				else
+					label.classList.add('ac');
+			} else {
+				label.classList.add('hid');
+				label.classList.remove('ac');
+			}
+
+			onCaret(e);
+		}
+
+		function onCaret(e) {
+			var lo = [e.target.selectionStart, e.target.selectionEnd]; info.lo = lo;
+			console.log(lo);
+			output.textContent = lo.join(', ');
+
+			div.textContent = info.val.substring(0, lo[1]);
+			span.style.left = div.clientWidth + 'px';
+
+			span.classList.add("nocaret"); setTimeout(function() { span.classList.remove("nocaret"); });
+		}
+
+		function focusDemanded(e) {
+			o.focus();
+			caretToEnd(o);
+			e.preventDefault();
+		}
+
+		if (com)
+			o.classList.add('com');
+		else
+			o.classList.add('bey');
+
+		div.classList.add('wt');
+
+		children.forEach(function(x) {
+			field.appendChild(x);
+		});
+
+		parent.replaceChild(field, o);
+		field.insertBefore(o, field.firstChild);
+
+		label.htmlFor = o.id;
+		label.textContent = info.placeholder;
+
+		On(o).on({
+			"input": onInput,
+			"keydown": function(e) {
+				switch (e.keyCode) {
+					case 37:
+					case 39:
+						setTimeout(function(){ onCaret(e); });
+						break;
+				}
+			}
+		});
+
+		On(label).on({
+			"touchend|mousedown": focusDemanded
+		})
+	}
+
+	init.call.apply(init, ["fieldset", "legend", "span", "div", "label"].map(function(x) { return document.createElement(x); }));
+}
+
+
+// try {
+	p1 = new Input(ps[0]);
+	p2 = new Input(ps[1]);
+// } catch(ex) {
+	// alert(ex.line + ": " + ex);
+	// console.log(ex);
+// }
+
+function Caret(x1, x2) {
+	var _x1 = x1, _x2 = x2;
+
+	Object.defineProperties(this, {
+		x1: {
+			set: function(x1) {
+				_x1 = x1;
+			},
+			get: function() {
+				return _x1;
+			}
+		},
+		x2: {
+			set: function(x2) {
+				_x2 = x2;
+			},
+			get: function() {
+				return _x2;
+			}
+		}
+	});
+}
+
+function caretTo(o, x1, x2) {
+	o.setSelectionRange(x1, Math.max(x1, x2));
+}
+
+function caretToEnd(o) {
+	o.selectionStart = o.selectionEnd = o.value.length;
+}
+
+</script>

@@ -1,0 +1,178 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline; }
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+body {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+@-webkit-keyframes caret {
+  25% {
+    opacity: 1; }
+
+  100% {
+    opacity: 0; } }
+
+@-moz-keyframes caret {
+  25% {
+    opacity: 1; }
+
+  100% {
+    opacity: 0; } }
+
+@-o-keyframes caret {
+  25% {
+    opacity: 1; }
+
+  100% {
+    opacity: 0; } }
+
+@keyframes caret {
+  25% {
+    opacity: 1; }
+
+  100% {
+    opacity: 0; } }
+
+html {
+  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
+  -webkit-font-feature-settings: "liga", "clig", "dlig";
+  -webkit-transform: translate3d(0, 0, 0); }
+
+form fieldset > legend, form fieldset .wt {
+  word-wrap: none;
+  white-space: pre;
+  word-break: keep-all;
+  text-wrap: none; }
+
+html {
+  font-size: 62.5%; }
+
+form {
+  margin: 2.5rem;
+  font: 2.2rem/1.5 "avenir next", "Hiragino Kaku Gothic ProN", "Heiti TC", arial, sans-serif; }
+
+form {
+  -webkit-user-select: none; }
+
+input {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.73333333333333); }
+
+input {
+  font: inherit;
+  margin-right: 2ex;
+  margin-bottom: base_lineheight(0.5);
+  width: 18rem;
+  border: none;
+  outline: none;
+  -webkit-appearance: none; }
+  input::-webkit-input-placeholder {
+    color: rgba(0, 0, 0, 0.5); }
+  input:focus::-webkit-input-placeholder {
+    color: rgba(0, 0, 0, 0.17254901960784); }
+
+form {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none; }
+  form fieldset {
+    display: inline-block;
+    position: relative;
+    padding: 0;
+    margin: -0.5rem 3ex -0.5rem -1ex;
+    width: 18rem;
+    overflow: hidden;
+    vertical-align: top; }
+    form fieldset > input {
+      position: absolute;
+      border: 1px solid red;
+      border-radius: 0;
+      padding: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+      -webkit-appearance: none; }
+      form fieldset > input.com {
+        width: 0;
+        height: 0;
+        font-size: 1px;
+        opacity: 0; }
+      form fieldset > input.bey {
+        top: -999px; }
+      form fieldset > input:focus {
+        outline: none;
+        border-color: black; }
+    form fieldset > label {
+      display: block;
+      padding: 0.5rem 1ex;
+      width: auto;
+      color: rgba(0, 0, 0, 0.49803921568627); }
+      form fieldset > label.hid {
+        color: transparent; }
+      form fieldset > label.ac {
+        color: transparent; }
+    form fieldset > legend {
+      display: block;
+      padding: 0.5rem 1ex;
+      position: absolute;
+      pointer-events: none; }
+    form fieldset > span {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 2px;
+      margin: 0.5rem 1ex;
+      padding: 0 0 0 0;
+      pointer-events: none; }
+      form fieldset > span.nocaret {
+        -webkit-animation: none !important;
+        -moz-animation: none !important;
+        -o-animation: none !important;
+        animation: none !important; }
+      form fieldset > span::before {
+        content: "\200b";
+        display: block;
+        height: 100%; }
+    form fieldset > input:focus ~ span {
+      -webkit-animation: caret 0.5s ease 0.375s alternate infinite;
+      -moz-animation: caret 0.5s ease 0.375s alternate infinite;
+      -o-animation: caret 0.5s ease 0.375s alternate infinite;
+      animation: caret 0.5s ease 0.375s alternate infinite; }
+      form fieldset > input:focus ~ span::before {
+        background: rgba(255, 0, 0, 0.5); }
+      form fieldset > input:focus ~ label {
+        color: lightgrey; }
+      form fieldset > input:focus ~ label.hid {
+        color: transparent; }
+    form fieldset .wt {
+      position: fixed;
+      top: -10000px;
+      right: 0; }
