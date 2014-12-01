@@ -45,6 +45,7 @@ article {
 	min-width: 15em;
 	margin: 0 auto;
 	padding: 72px;
+	overflow: hidden;
 }
 h1, h2, h3, h4, h5, h6 {
 	font-family: "avenir next", avenir, sans-serif;
@@ -63,7 +64,6 @@ h2 {
 	text-indent: 2em;
 }
 p {
-	
 	font-weight: 400;
 	margin: 0 0 12px 0;
 	/*font-family: charter, georgia, serif;*/
@@ -72,11 +72,11 @@ q {
   quotes: "\201C" "\201D" "\2018" "\2019";
 }
 q:first-child::before {
-  display: inline-block;
-  width: 2em;
-  margin-left: -2em;
-  text-align: right;
-  text-indent: 0;
+	display: inline-block;
+	width: 2em;
+	margin-left: -2em;
+	text-align: right;
+	text-indent: 0;
 }
 blockquote {
 	padding-left: 2em;
@@ -94,28 +94,60 @@ article > ol, article > ul {
 article > ol > li:last-child, article > ul > li:last-child {
 	margin: 0 0 12px 0;
 }
-article > p:empty:before {
-	content: "paragraph";
+
+
+article h1, article h2, article p {
+	margin: 0;
+}
+article > p + p:empty, article > h1 + p:empty, article > h2 + p:empty {
+	line-height: 12px;
+	margin: 0;
+}
+article > p:empty:before, article > h1 + p:empty:before, article > h2 + p:empty:before {
+	content: "\00A0";
 	color: rgba(0,0,0,0.1);
 }
-
+article > p:empty + p:empty + p:empty:before {
+	content: "\00A0";
+	line-height: 12px;
+	margin: 0;
+}
+article > p + p:empty + p:empty:before {
+	content: "paragraph";
+	line-height: 24px;
+	color: rgba(0,0,0,0.1);
+}
 strong {
 	font-weight: 600;
+}
+
+h1 span:first-child, h2 span:first-child {
+	display: inline-block;
+	width: 7rem;
+	margin-left: -7rem;
+	text-align: right;
+	white-space: pre;
+	color: rgba(0,0,0,.4);
+	font-weight: 400;
+}
+
+strong span:first-child, strong span:last-child, em span:first-child, em span:last-child {
+	color: rgba(0,0,0,.4);
 }
 
 #baseline_cover { background-position: 0 7px; /*background-image: url(s/baseline.php?h=24&r=196&g=196&b=196&s=1);*/ }
 </style>
 
 <article>
-  <h1># Lorem ipsum</h1>
-  <!-- <p>This is _beautiful_. Isn't you? </p> -->
-  <p>This is _beautiful_. __a___b___b__. __a_b_c__. _a__b__c_. Don't you? </p>
-  <p>_a__b___. __a_b___. </p>
-  <p>___a__b_. ___a_b__. </p>
-  <p>__a_b__. __a___b_. </p>
-  <p>__a_b___. </p>
-  <p>___a_b__. </p>
-  <p>__a_a__. </p>
+  <p># Lorem ipsum</p><p></p>
+  <!-- <p>This is _beautiful_. Isn't you? </p><p></p> -->
+  <p>This is _beautiful_. __a___b___b__. __a_b_c__. _a__b__c_. Don't you? </p><p></p>
+  <p>_a__b___. __a_b___. </p><p></p>
+  <p>___a__b_. ___a_b__. </p><p></p>
+  <p>__a_b__. __a___b_. </p><p></p>
+  <p>__a_b___. </p><p></p>
+  <p>___a_b__. </p><p></p>
+  <p>__a_a__. </p><p></p>
   <p> __a__</p>
 </article>
 <output id="op"></output>
@@ -352,7 +384,11 @@ var Format = function() {
 			s = s.slice();
 			if (s.length > 1 && (s0 = s[0]) && p[s0] && (t = g[s0.length])) {
 				if (s[s.length - 1] === s0) {
+					s.shift();
+					s.unshift("<span>" + s0 + "</span>");
 					s.unshift("<" + t + ">");
+					s.pop();
+					s.push("<span>" + s0 + "</span>"); 
 					s.push("</" + t + ">");
 				}
 			}
@@ -388,10 +424,11 @@ var Op = function() {
 		if (x === null)
 			return log(x);
 
-		var val = encode(x.textContent);
+		var val = encode(x.textContent), m, l;
 
-		if (val.indexOf('# ') === 0) {
-			replaceLine(Format.stylize(val), x, 'h1');
+		if (m = val.match(/^(#{1,2})\s/)) {
+			l = m[1].length;
+			replaceLine("<span>" + m[0].replace(/\s/g, '\u00A0') + "</span>" + Format.stylize(val.substr(l+1)), x, 'h' + l);
 		}
 		else {
 			replaceLine(Format.stylize(val), x, 'p');
