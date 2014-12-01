@@ -117,14 +117,22 @@ article > p + p:empty + p:empty:before {
 	line-height: 24px;
 	color: rgba(0,0,0,0.1);
 }
+article > p:first-child:empty:before {
+	content: "paragraph";
+	line-height: 24px;
+	color: rgba(0,0,0,0.1);
+}
 strong {
 	font-weight: 600;
 }
 
 h1 > span:first-child, h2 > span:first-child {
 	display: inline-block;
-	width: 7rem;
+	text-indent: -7rem;
+	padding-left: 7rem;
 	margin-left: -7rem;
+	height: 24px;
+	line-height: 24px;
 	text-align: right;
 	white-space: pre;
 	color: rgba(0,0,0,.4);
@@ -452,9 +460,18 @@ var Op = function() {
 			tt.push(t.join("</p><p>"));
 			tt.push("</p>")
 		}
-		t = tt.join("");
+		
 
 		// log(t);
+
+		document.execCommand("delete");
+
+		var s = window.getSelection();
+
+		if (s.focusNode.nodeName !== "p" && s.focusNode !== article)
+			s.focusNode.outerHTML = "<p>" + s.focusNode.textContent.replace(/&/g, '&amp;').replace(/</g, '&lt;') + "</p>";
+
+		t = tt.join("");
 
 		document.execCommand("insertHTML", false, t);
 
