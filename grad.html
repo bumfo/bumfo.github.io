@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<title>grad</title>
+
+<canvas></canvas>
+
+<script>
+var c = document.querySelector("canvas");
+ctx = c.getContext("2d");
+
+var img = new Image();
+
+img.onload = function() {
+	var width = img.width,
+		height = img.height;
+
+	c.width = width;
+	c.height = height;
+
+	ctx.drawImage(img, 0, 0);
+	var data = ctx.getImageData(0, 0, width, height).data;
+
+	var step = 20;
+
+	var red = getColor(data, 0),
+		green = getColor(data, 1),
+		blue = getColor(data, 2);
+
+	var _red = getGrad(red),
+		_green = getGrad(blue),
+		_blue = getGrad(green);
+
+	var __red = getNode(_red, 0), 
+		__green = getNode(_green, 1), 
+	 	__blue = getNode(_blue, 2);
+
+	console.log(__red, __green, __blue);
+
+	drawNode(__red, 0);
+	drawNode(__green, 1);
+	drawNode(__blue, 2);
+
+	function rgb(r, g, b) {
+		return "rgb(" + r + ", " + g + ", " + b + ")";
+	}
+
+	function drawNode(__color, colorOffset) {
+		for (var i in __color) {
+			var y = i * step;
+			ctx.beginPath();
+			ctx.moveTo(0, y);
+			ctx.lineTo(width, y);
+			var color = [0, 0, 0];
+			color[colorOffset] = 255;
+			ctx.strokeStyle = rgb.apply(null, color);
+			ctx.stroke();
+		}
+	}
+
+	
+
+	function getNode(a, colorOffset) {
+		var nodes = {}, j;
+
+		for (var i = 0; i < a.length; ++i)
+			if (a[i] !== 0) {
+				j = (i * step * width) * 4 + colorOffset;
+				nodes[i] = data[j];
+			}
+
+		return nodes;
+	}
+
+	function getColor(data, colorOffset) {
+		var color = [];
+
+		
+
+		for (var i = 0; i < height; i += step) {
+			var j = (i * width) * 4 + colorOffset;
+
+			color.push(data[j]);
+		}
+
+		return color;
+	}
+}
+
+img.src = "grad.png";
+
+function getGrad(data) {
+	var grad = [], grad2 = [];
+
+	data.reduce(function(x0, x1) {
+	    grad.push(x1 - x0);
+	    return x1;
+	});
+
+	grad.reduce(function(x0, x1) {
+	    grad2.push(x1 - x0);
+	    return x1;
+	});
+	// console.log(data, grad, grad2);
+	// console.log(Math.min.apply(Math, grad), Math.max.apply(Math, grad));
+	// console.log(Math.min.apply(Math, grad2), Math.max.apply(Math, grad2));
+
+	return grad2.map(function(x) { return Math.abs(x) > 2 ? x : 0 });
+}
+
+
+</script>
