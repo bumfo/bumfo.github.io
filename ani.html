@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<title>Ani</title>
+
+<style>
+	div {
+		display: inline-block;
+		border: 1px solid #ddd;
+		border-radius: 3px;
+		padding: 15px;
+		background: green;
+		color: white;
+	}
+</style>
+
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+<div>Moving down</div>
+
+<script>
+"use strict";
+
+var divs = document.querySelectorAll("div");
+
+var movements = [];
+
+for (var i = 0; i < divs.length; ++i)
+	movements.push(new Movement(divs[i], 447, Math.pow(2, i+1) * 5));
+
+function getStep(totalstep, duration, t, dt, timing) {
+    return totalstep / duration * timing(t / duration) * dt;
+}
+
+function Movement(el, duration, delay) {
+	this[0] = el;
+
+	this.to = 1000;
+	this.duration = duration || 1000; // milliseconds
+	this.delay = delay || 0;    // milliseconds
+	this.y = 0;
+}
+
+Movement.prototype.moveTo = function(y) {
+	this[0].style.transform = "translate3d(0, " + y + "px, 0)";
+}
+
+Movement.prototype.update = function(t, dt) {
+    var to = this.to, 
+    	duration = this.duration,
+    	delay = this.delay, 
+    	y = this.y;
+
+    t -= delay;
+
+    if (t >= 0) {
+    	y += getStep(this.to, this.duration, t, dt, function(t) { return 2 * t });
+    	y = Math.min(y, to);
+
+    	this.y = y;
+    	
+    	this.moveTo(y);
+    }
+    
+    return (y) < to;
+}
+
+movements.update = function(t, dt) {
+	var running = false;
+
+	for (var i = 0, n = this.length; i < n; ++i)
+		running = this[i].update(t, dt) || running;
+
+	return running;
+}
+
+requestAnimationFrame(function(t) {
+    var t0 = t, t1 = 0;
+    requestAnimationFrame(function frame(t) {
+    	// console.log(t);
+        movements.update(t - t0, -t1 + (t1 = t)) && requestAnimationFrame(frame);
+    });
+});
+
+</script>
+
