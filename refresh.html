@@ -114,6 +114,8 @@ div {
 	z-index: -1;
 
 	text-align: center;
+
+	-webkit-animation: caret .5s ease .375s alternate infinite;
 }
 
 canvas, output {
@@ -135,17 +137,40 @@ nav {
 	border-bottom: 0.5px solid rgba(255,255,255,1);
 
 	
-	-webkit-animation: caret .5s ease .375s alternate infinite;
+	
 
 	z-index: -2;
 
 	color: rgba(0,0,0,0.666);
 }
 
-body {
-	padding-top: 40px;
+nav.top {
+	z-index: 1;
 }
 
+
+article {
+	transition: all 0.5s ease;
+}
+
+nav.top + article {
+	/*-webkit-transform: translate3d(0,40px,0);*/
+	/*transition: none;*/
+
+}
+
+body {
+	/*padding-top: 40px;*/
+}
+
+/*body {
+	padding-top: 40px;
+}*/
+
+/*html {
+	-webkit-transform: translate3d(0,40px,0);
+}
+*/
 article {
 	background: white;
 }
@@ -196,20 +221,47 @@ article {
 </article>
 
 <script>
-	var output = document.querySelector("output");
+	var output = document.querySelector("output"),
+		nav = document.querySelector("nav"),
+		article = document.querySelector("article");
 
 	var threshold = -200;
 
 	// model
-	var needRefresh = false, refreshing = false, touchdown = false;
+	var needRefresh = false, refreshing = false, touchdown = false, scrolling = false;
 
 	// view
 	requestAnimationFrame(function frame(t) {
-		// output.textContent = window.scrollY;
-
 		var y = window.scrollY;
 
+		
+
 		onscroll(y);
+
+		// if (needRefresh) {
+		// 	if (document.body.className !== "fuck") {
+		// 		document.body.className = "fuck";
+		// 		window.scrollTo(0, window.scrollY + 40);
+		// 	}
+		// }
+
+		var p = y/threshold;
+
+		if (needRefresh || refreshing)
+			p = 1;
+
+		article.style.webkitTransform = "translate3d(0,"+40*p+"px,0)";
+
+		if (scrolling)
+			article.style.transition = "none";
+		else
+			article.style.transition = "";
+
+
+		if (refreshing || needRefresh)
+			nav.className = "top";
+		else
+			nav.className = "";
 
 		var text = refreshing ? "Refreshing..." : needRefresh ? "Release to Refresh" : "Pull to Refresh";
 
@@ -244,6 +296,8 @@ article {
 				ctx.stroke();
 			} 
 		} 
+
+
 
 		requestAnimationFrame(frame);
 	});
@@ -292,6 +346,10 @@ article {
 		touchdown = true;
 	});
 
+	window.addEventListener("touchmove", function(e) {
+
+	});
+
 	window.addEventListener("touchend", function(e) {
 		if (needRefresh) {
 			refresh();
@@ -304,5 +362,24 @@ article {
 
 	window.addEventListener("touchcancel", function(e) {
 		touchdown = false;
+	});
+
+	window.addEventListener("pageshow", function(e) {
+		// setTimeout(function() {
+		// 	if (document.body.className !== "fuck") {
+		// 		document.body.className = "fuck";
+		// 		window.scrollTo(0, window.scrollY + 40);
+		// 	}
+		// }, 200);
+	});
+
+	var T;
+
+	window.addEventListener("scroll", function(e) {
+		scrolling = true;
+		clearTimeout(T);
+		T = setTimeout(function() {
+			scrolling = false;
+		}, 100);
 	});
 </script>
