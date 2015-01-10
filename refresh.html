@@ -250,6 +250,8 @@ article {
 		if (needRefresh || refreshing)
 			p = 1;
 
+		p = Math.max(Math.min(p, 1), 0);
+
 		article.style.webkitTransform = "translate3d(0,"+40*p+"px,0)";
 
 		if (scrolling)
