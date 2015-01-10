@@ -114,19 +114,10 @@ div {
 	z-index: -1;
 
 	text-align: center;
-
-	vertical-align: middle;
 }
 
 canvas, output {
 	vertical-align: middle;
-}
-
-canvas {
-	display: inline-block;
-}
-
-output {
 	display: inline-block;
 }
 
@@ -147,6 +138,8 @@ nav {
 	-webkit-animation: caret .5s ease .375s alternate infinite;
 
 	z-index: -2;
+
+	color: rgba(0,0,0,0.666);
 }
 
 body {
@@ -159,11 +152,11 @@ article {
 
 @-webkit-keyframes caret {
 	25% {
-		opacity: 1; /*rgba(0,0,0,1);*/
+		opacity: 1; 
 	}
 
 	100% {
-		opacity: 0.5;/*rgba(0,0,0,0.5);*/
+		opacity: 0.75;
 	}
 }
 </style>
@@ -229,15 +222,25 @@ article {
 			ctx.beginPath();
 			ctx.arc(dm/2, dm/2, 10, (t % 1000 / 1000 + 0.1) * 2 * Math.PI, t % 1000 / 1000 * 2 * Math.PI, false);
 			ctx.stroke();
-		} else if (y < 0) {
+		} else {
 			var p = y/threshold;
 
 			if (needRefresh)
 				p = 1;
 
+			ctx.strokeStyle = "rgba(0,0,0," + (1 - p)/5 + ")";
+
 			ctx.beginPath();
-			ctx.arc(dm/2, dm/2, 10, 0, p * 2 * Math.PI, false);
+			ctx.arc(dm/2, dm/2, 10, 0, 2 * Math.PI, false);
 			ctx.stroke();
+
+			ctx.strokeStyle = "rgba(0,0,0,1)";
+
+			if (y < 0) {
+				ctx.beginPath();
+				ctx.arc(dm/2, dm/2, 10, 0, p * 2 * Math.PI, false);
+				ctx.stroke();
+			} 
 		} 
 
 		requestAnimationFrame(frame);
