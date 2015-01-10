@@ -10,25 +10,25 @@
   font-family: 'Source Sans Pro';
   font-style: normal;
   font-weight: 400;
-  src: local('Source Sans Pro'), local('SourceSansPro-Regular'), url(/s/source_sans_pro/SourceSansPro-Regular.ttf);
+  src: local('Source Sans Pro'), local('SourceSansPro-Regular'), url(s/ssp/ssp-regular.woff2) format('woff2'), url(s/ssp/ssp-regular.woff) format('woff');
 }
 @font-face {
   font-family: 'Source Sans Pro';
   font-style: normal;
   font-weight: 600;
-  src: local('Source Sans Pro Semibold'), local('SourceSansPro-Semibold'), url(/s/source_sans_pro/SourceSansPro-Semibold.ttf);
+  src: local('Source Sans Pro Semibold'), local('SourceSansPro-Semibold'), url(s/ssp/ssp-semibold.woff2) format('woff2'), url(s/ssp/ssp-semibold.woff) format('woff');
 }
 @font-face {
   font-family: 'Source Sans Pro';
   font-style: italic;
   font-weight: 400;
-  src: local('Source Sans Pro Italic'), local('SourceSansPro-It'), url(/s/source_sans_pro/SourceSansPro-Italic.ttf);
+  src: local('Source Sans Pro Italic'), local('SourceSansPro-It'), url(s/ssp/ssp-italic.woff2) format('woff2'), url(s/ssp/ssp-italic.woff) format('woff');
 }
 @font-face {
   font-family: 'Source Sans Pro';
   font-style: italic;
   font-weight: 600;
-  src: local('Source Sans Pro Semibold Italic'), local('SourceSansPro-SemiboldIt'), url(/s/source_sans_pro/SourceSansPro-SemiboldItalic.ttf);
+  src: local('Source Sans Pro Semibold Italic'), local('SourceSansPro-SemiboldIt'), url(s/ssp/ssp-semibolditalic.woff2) format('woff2'), url(s/ssp/ssp-semibolditalic.woff) format('woff');
 }
 
 html, body { margin: 0; padding: 0; }
@@ -159,11 +159,11 @@ article {
 
 @-webkit-keyframes caret {
 	25% {
-		color: rgba(0,0,0,1);
+		opacity: 1; /*rgba(0,0,0,1);*/
 	}
 
 	100% {
-		color: rgba(0,0,0,0.5);
+		opacity: 0.5;/*rgba(0,0,0,0.5);*/
 	}
 }
 </style>
