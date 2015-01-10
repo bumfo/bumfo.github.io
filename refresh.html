@@ -265,14 +265,16 @@ article {
 	// controller
 
 	function onscroll(y) {
-		if (y <= threshold)
-			needRefresh = true;
-		else if (touchdown)
-			needRefresh = false;
+		if (!refreshing) {
+			if (y <= threshold)
+				needRefresh = true;
+			else if (touchdown)
+				needRefresh = false;
 
-		if (y === 0 && needRefresh && !touchdown) {
-			needRefresh = false;
-			refresh();
+			if (y === 0 && needRefresh && !touchdown) {
+				needRefresh = false;
+				refresh();
+			}
 		}
 	}
 
