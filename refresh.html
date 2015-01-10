@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<title>Scrolling</title>
+<title>Refresh</title>
 
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimal-ui">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -129,6 +129,7 @@ nav {
 	/*position: -webkit-sticky;*/
 
 	top: 0;
+	top: -40px;
 	width: 100%;
 	line-height: 40px;
 	/*padding: 0 1ex;*/
@@ -137,19 +138,19 @@ nav {
 	border-bottom: 0.5px solid rgba(255,255,255,1);
 
 	
-	
+	z-index: 1;
 
-	z-index: -2;
+	/*z-index: -2;*/
 
 	color: rgba(0,0,0,0.666);
 }
 
 nav.top {
-	z-index: 1;
+	/*z-index: 1;*/
 }
 
 
-article {
+article, nav {
 	transition: all 0.5s ease;
 }
 
@@ -231,33 +232,32 @@ article {
 	var needRefresh = false, refreshing = false, touchdown = false, scrolling = false;
 
 	// view
-	requestAnimationFrame(function frame(t) {
-		var y = window.scrollY;
 
-		
+	function frame(t) {
+		var y = window.scrollY;
 
 		onscroll(y);
 
-		// if (needRefresh) {
-		// 	if (document.body.className !== "fuck") {
-		// 		document.body.className = "fuck";
-		// 		window.scrollTo(0, window.scrollY + 40);
-		// 	}
-		// }
-
-		var p = y/threshold;
-
-		if (needRefresh || refreshing)
-			p = 1;
+		var p = y/threshold, q = y/-40;
 
 		p = Math.max(Math.min(p, 1), 0);
+		q = Math.max(Math.min(q, 1), 0);
+
+		if (needRefresh || refreshing) {
+			p = 1;
+			q = 1;
+		}
+
+		q += Math.max(0, y/-40 - 1) / 2;
 
 		article.style.webkitTransform = "translate3d(0,"+40*p+"px,0)";
 
+		nav.style.webkitTransform = "translate3d(0,"+40*q+"px,0)";
+
 		if (scrolling)
-			article.style.transition = "none";
+			nav.style.transition = article.style.transition = "none";
 		else
-			article.style.transition = "";
+			nav.style.transition = article.style.transition = "";
 
 
 		if (refreshing || needRefresh)
@@ -265,13 +265,12 @@ article {
 		else
 			nav.className = "";
 
-		var text = refreshing ? "Refreshing..." : needRefresh ? "Release to Refresh" : "Pull to Refresh";
+		var text = ""; //refreshing ? "Refreshing..." : needRefresh ? "Release to Refresh" : "Pull to Refresh";
 
 		if (text !== output.textContent)
 			output.textContent = text;
 
 		ctx.clearRect(0,0,dm,dm);
-
 
 		if (refreshing) {
 			var p = t % 1000 / 1000;
@@ -284,7 +283,7 @@ article {
 			if (needRefresh)
 				p = 1;
 
-			ctx.strokeStyle = "rgba(0,0,0," + (1 - p)/5 + ")";
+			ctx.strokeStyle = "rgba(0,0,0," + (1 - p)/4 + ")";
 
 			ctx.beginPath();
 			ctx.arc(dm/2, dm/2, 10, 0, 2 * Math.PI, false);
@@ -297,12 +296,12 @@ article {
 				ctx.arc(dm/2, dm/2, 10, 0, p * 2 * Math.PI, false);
 				ctx.stroke();
 			} 
-		} 
-
-
+		}
 
 		requestAnimationFrame(frame);
-	});
+	}
+
+	requestAnimationFrame(frame);
 
 	var dm = 22;
 
@@ -329,7 +328,8 @@ article {
 			else if (touchdown)
 				needRefresh = false;
 
-			if (y === 0 && needRefresh && !touchdown) {
+			// if (y === 0 && needRefresh && !touchdown) {
+			if (needRefresh && !touchdown) {
 				needRefresh = false;
 				refresh();
 			}
@@ -349,7 +349,7 @@ article {
 	});
 
 	window.addEventListener("touchmove", function(e) {
-
+		// frame(Date.now());
 	});
 
 	window.addEventListener("touchend", function(e) {
