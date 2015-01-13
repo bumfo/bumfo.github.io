@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<title></title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+	html,
+	input,
+	textarea,
+	button {
+		font: 16px/1.4 'Open Sans', 'Kohinoor Devanagari', 'Euphemia UCAS', serif;
+	}
+
+	input,
+	textarea,
+	button,
+	output {
+		line-height: normal;
+
+		display: inline-block;
+
+		-webkit-box-sizing: content-box;
+		height: 2rem;
+		margin: 0;
+
+		vertical-align: baseline;
+
+		border-radius: 0;
+		outline: none;
+		background: none;
+
+		-webkit-appearance: none;
+	}
+
+	input,
+	textarea {
+		padding: 0 .5ex;
+
+		border: .5px solid rgba(0,0,0,.2);
+		box-shadow: 0 0 0 .5px rgba(0,0,0,.2);
+	}
+
+	input:focus,
+	textarea:focus {
+		border-color: rgba(59, 153, 252, .7);
+		box-shadow: 0 0 0 1.5px rgba(59, 153, 252, .5), 0 0 0 .5px rgba(59, 153, 252, .7);
+	}
+
+	button {
+		padding: 0 1ex;
+
+		border: .5px solid transparent;
+		box-shadow: 0 0 0 .5px transparent;
+	}
+
+	input:focus + button {
+		color: #177efb;
+	}
+
+	output {
+		line-height: 2rem;
+		border: .5px solid transparent;
+		box-shadow: 0 0 0 .5px transparent;
+	}
+
+	output:empty::before {
+		content: '\200b';
+	}
+</style>
+
+<input><button> = </button><output></output>
+
+<script src="s/inte.js"></script>
+<script>
+	"use strict";
+
+	var input = document.querySelector("input"),
+		output = document.querySelector("output");
+
+	input.addEventListener("input", function(e) {
+		var inp = e.target.value;
+
+		var r = interpret(s = parse(next(inp))), s;
+
+		console.log(r);
+
+		if (isNaN(r))
+			r = "...";
+
+		output.textContent = r;
+	});
+
+	window.addEventListener("pageshow", function(e) {
+		if (!("ontouchstart" in window))
+			input.focus();
+	});
+</script>

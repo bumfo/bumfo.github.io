@@ -98,11 +98,7 @@ article > ol > li:last-child, article > ul > li:last-child {
 	margin: 0 0 12px 0;
 }
 
-@media (max-width: 375px) {
-	article {
-		padding: 1.5rem;
-	}
-}
+/* */
 
 div {
 	display: block;
@@ -185,6 +181,15 @@ article {
 		opacity: 0.75;
 	}
 }
+
+@media (max-width: 375px) {
+	article {
+		padding: 1.5rem;
+	}
+	div {
+		padding: 0 1.5rem;
+	}
+}
 </style>
 
 <nav><div><canvas width="40" height="40"></canvas> <output>0</output></div></nav>
@@ -227,6 +232,9 @@ article {
 		article = document.querySelector("article");
 
 	var threshold = -200;
+
+	if (screen.width < 768)
+		threshold = -100;
 
 	// model
 	var needRefresh = false, refreshing = false, touchdown = false, scrolling = false;
