@@ -139,6 +139,8 @@ nav {
 	/*z-index: -2;*/
 
 	color: rgba(0,0,0,0.666);
+
+	overflow: hidden;
 }
 
 nav.top {
@@ -146,7 +148,11 @@ nav.top {
 }
 
 
-article, nav {
+article {
+	transition: all 0.5s ease;
+}
+
+nav {
 	transition: all 0.5s ease;
 }
 
@@ -192,7 +198,7 @@ article {
 }
 </style>
 
-<nav><div><canvas width="40" height="40"></canvas> <output>0</output></div></nav>
+<nav><div><canvas width="40" height="40"></canvas><output></output></div></nav>
 
 <article>
 	<h1>Lorem ipsum</h1>
@@ -241,10 +247,20 @@ article {
 
 	// view
 
-	function frame(t) {
-		var y = window.scrollY;
+	var velocity = 0;
+
+	var y1 = 0;
+
+	var y2 = 0;
+
+	function update(y, t, dt) {
+
+		y2 = y2 * 0.9 + y * 0.1
 
 		onscroll(y);
+
+		// if (touchdown)
+			y = (y*0.1+y2*0.9);
 
 		var p = y/threshold, q = y/-40;
 
@@ -263,15 +279,17 @@ article {
 		nav.style.webkitTransform = "translate3d(0,"+40*q+"px,0)";
 
 		if (scrolling)
-			nav.style.transition = article.style.transition = "none";
+			nav.style.transition = article.style.transition = "none"; // 
 		else
-			nav.style.transition = article.style.transition = "";
+			nav.style.transition = article.style.transition = ""; // 
 
 
-		if (refreshing || needRefresh)
-			nav.className = "top";
-		else
-			nav.className = "";
+		// if (refreshing || needRefresh) {
+			// 	if (nav.className !== "top")
+			// 		nav.className = "top";
+		// }
+		// else if (nav.className !== "")
+		// 	nav.className = "";
 
 		var text = ""; //refreshing ? "Refreshing..." : needRefresh ? "Release to Refresh" : "Pull to Refresh";
 
@@ -305,11 +323,26 @@ article {
 				ctx.stroke();
 			} 
 		}
-
-		requestAnimationFrame(frame);
 	}
 
-	requestAnimationFrame(frame);
+	var frame;
+
+	requestAnimationFrame(function(t0) {
+		var t1 = t0;
+		frame = function frame(t) {
+			// if (!touchdown) {
+				var y = window.scrollY;
+
+				update(y, t-t0, t-t1);
+
+				t1 = t;
+			// }
+
+			requestAnimationFrame(frame);
+		}
+
+		requestAnimationFrame(frame);
+	});
 
 	var dm = 22;
 
@@ -390,6 +423,6 @@ article {
 		clearTimeout(T);
 		T = setTimeout(function() {
 			scrolling = false;
-		}, 100);
+		}, 1000);
 	});
 </script>
