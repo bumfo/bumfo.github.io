@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<title>Tree Menu</title>
+
+<style>
+details {
+	padding-left: 15px;
+	border-left: 1px solid #ddd;
+}
+summary {
+	position: relative;
+}
+summary::before {
+	content: '\200b';
+	position: absolute;
+	width: 15px;
+	left: -15px;
+	background: #ddd;
+	height: 1px;
+	top: 50%;
+}
+</style>
+
+<details><summary>A</summary>
+	<details><summary>A1</summary>
+		<details><summary>A11</summary>
+			
+		</details>
+	</details>
+	<details><summary>A2</summary>
+		
+	</details>
+</details>
+<details><summary>B</summary>
+	<details><summary>B1</summary>
+		
+	</details>
+</details>
