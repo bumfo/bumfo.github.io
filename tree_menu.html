@@ -2,14 +2,22 @@
 <title>Tree Menu</title>
 
 <style>
-details {
+details > details {
+	position: relative;
 	padding-left: 15px;
+}
+details > details::before {
 	border-left: 1px solid #ddd;
+	content: '\200b';
+	position: absolute;
+	left: 0;
+	height: 100%;
+	bottom: 0.5em;
 }
 summary {
 	position: relative;
 }
-summary::before {
+details > details > summary::before {
 	content: '\200b';
 	position: absolute;
 	width: 15px;
@@ -18,20 +26,27 @@ summary::before {
 	height: 1px;
 	top: 50%;
 }
+/*summary::-webkit-details-marker {
+	display: none;
+}*/
 </style>
 
-<details><summary>A</summary>
-	<details><summary>A1</summary>
-		<details><summary>A11</summary>
-			
+<details><summary>Root</summary>
+	<details><summary>A</summary>
+		<details><summary>A1</summary>
+			<details><summary>A11</summary></details>
+			<details><summary>A12</summary></details>
+			<details><summary>A13</summary></details>
+			<details><summary>A14</summary></details>
+		</details>
+		<details><summary>A2</summary>
+			<details><summary>A21</summary></details>
+			<details><summary>A22</summary></details>
 		</details>
 	</details>
-	<details><summary>A2</summary>
-		
-	</details>
-</details>
-<details><summary>B</summary>
-	<details><summary>B1</summary>
-		
+	<details><summary>B</summary>
+		<details><summary>B1</summary>
+			
+		</details>
 	</details>
 </details>
