@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<title>Unit</title>
+
+<style>
+  html,
+  input,
+  textarea {
+    font: 16px/1.4 text, 'Open Sans', 'Kohinoor Devanagari', 'Euphemia UCAS', serif;
+  }
+  body {
+    margin: 0;
+  }
+  main {
+    padding: .5rem;
+  }
+
+  input,
+  textarea {
+    font-size: 1rem;
+    line-height: 1.5;
+
+    display: inline-block;
+
+    width: 11.25rem;
+    /*margin: .03125rem;*/
+    padding: .25rem .3125rem;
+
+    border: none;
+    border: .03125rem solid #bfbfbf;
+    border-radius: 0;
+    outline: none;
+
+    -webkit-appearance: none;
+  }
+  input:focus,
+  textarea:focus {
+    border-color: rgba(59, 153, 252, .7);
+    box-shadow: 0 0 0 .03125rem rgba(59, 153, 252, .5), inset 0 0 0 .03125rem rgba(59, 153, 252, .5);
+  }
+
+  @media screen and (-webkit-min-device-pixel-ratio: 2) {
+    html {
+    }
+    main {
+      box-sizing: border-box;
+      min-width: 200%;
+
+      -webkit-transform: scale(.5);
+      -webkit-transform-origin: 0 0;
+    }
+    html {
+      font-size: 32px;
+    }
+  }
+</style>
+
+<script src="/s/modular.js"></script>
+<script>require('./ready.js');</script>
+
+<main>
+  <section id="demo">
+    <input value="{{ input0 }} + {{ input }}" autofocus><label> = {{ result }}</label>
+  </section>
+</main>
+
+<script>require('./unit.js');</script>
