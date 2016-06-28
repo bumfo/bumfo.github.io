@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<title>Transition</title>
+
+<style>
+html {
+	font: 16px sans-serif;
+}
+article {
+	width: 500px;
+	overflow: hidden;
+}
+div {
+	width: 2500px;
+	transform: translate3d(0px, 0px, 0px);
+	transition: transform ease 1s;
+}
+section {
+	width: 500px;
+	height: 100px;
+	float: left;
+	padding: 15px;
+	border: 1px solid #ddd;
+	box-sizing: border-box;
+}
+</style>
+
+<article>
+<div id="div">
+	<section>1</section>
+	<section>2</section>
+	<section>3</section>
+	<section>4</section>
+	<section>5</section>
+</div>
+</article>
+
+<button onclick="prev()">prev</button>
+<button onclick="next()">next</button>
+
+<script>
+var total = 5;
+var width = 500;
+
+var index = 0;
+
+var divDom = document.querySelector('#div');
+
+function tranformScroll() {
+	var x = -index * width;
+	divDom.style.transform = 'translate3d(' + x + 'px, 0px, 0px)';
+}
+
+function normalizeIndex() {
+	index = (total + index % total) % total;
+}
+
+function prev() {
+	--index;
+	normalizeIndex();
+	tranformScroll();
+}
+
+function next() {
+	++index;
+	normalizeIndex();
+	tranformScroll();
+}
+
+
+</script>
