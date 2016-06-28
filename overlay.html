@@ -1,0 +1,229 @@
+<!DOCTYPE HTML>
+<title>Overlay</title>
+
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimal-ui">
+
+<style>
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Source Sans Pro'), local('SourceSansPro-Regular'), url(s/source_sans_pro/SourceSansPro-Regular.ttf);
+}
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Source Sans Pro Semibold'), local('SourceSansPro-Semibold'), url(s/source_sans_pro/SourceSansPro-Semibold.ttf);
+}
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Source Sans Pro Italic'), local('SourceSansPro-It'), url(s/source_sans_pro/SourceSansPro-Italic.ttf);
+}
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: italic;
+  font-weight: 600;
+  src: local('Source Sans Pro Semibold Italic'), local('SourceSansPro-SemiboldIt'), url(s/source_sans_pro/SourceSansPro-SemiboldItalic.ttf);
+}
+
+html, body { margin: 0; padding: 0; }
+html { min-height: 100%; }
+body {
+	text-rendering: optimizeLegibility;
+	text-rendering: geometricPrecision;
+	-webkit-font-feature-settings: "liga", "clig";
+	color: rgba(0,0,0,0.75);
+
+	font: 18px/24px "Source Sans Pro", seravek, sans-serif;
+
+	height: 100%;
+}
+article {
+	max-width: 30em;
+	min-width: 15em;
+	margin: 0 auto;
+	padding: 72px;
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: "avenir next", avenir, sans-serif;
+}
+h1 {
+	font-size: 1.5em;
+	font-weight: 600;
+	line-height: 48px;
+	margin: 0 0 12px 0;
+}
+h2 {
+	font-size: 1.1em;
+	font-weight: 600;
+	line-height: 24px;
+	margin: 0 0 12px 0;
+	text-indent: 2em;
+}
+p {
+	font-weight: 400;
+	margin: 0 0 12px 0;
+	/*font-family: charter, georgia, serif;*/
+}
+q {
+  quotes: "\201C" "\201D" "\2018" "\2019";
+}
+q:first-child::before {
+  display: inline-block;
+  width: 2em;
+  margin-left: -2em;
+  text-align: right;
+  text-indent: 0;
+}
+blockquote {
+	padding-left: 2em;
+	margin: 0 0 12px 0;
+
+	font-size: 0.95em;
+}
+ol, ul {
+	padding-left: 2em;
+	margin: 0;
+}
+article > ol, article > ul {
+	padding-left: 0;
+}
+article > ol > li:last-child, article > ul > li:last-child {
+	margin: 0 0 12px 0;
+}
+
+@media (max-width: 375px) {
+	article {
+		padding: 1.5rem;
+	}
+}
+
+
+#baseline_cover { background-position: 0 7px; background-image: url(s/baseline.php?h=24&r=196&g=196&b=196&s=1); }
+
+output {
+	display: block;
+	position: fixed;
+	/*position: -webkit-sticky;*/
+
+	top: 0;
+	width: 100%;
+	line-height: 40px;
+	padding: 0 1ex;
+
+	background: rgba(255,255,255,0.7);
+	border-bottom: 0.5px solid rgba(255,255,255,1);
+
+	
+
+	-webkit-animation: caret .5s ease .375s alternate infinite;
+}
+
+body {
+	padding-top: 40px;
+}
+
+nav {
+	position: fixed;
+	top: 0;
+	height: 0;
+	overflow: hidden;
+	background: #fff;
+	width: 100%;
+	padding-top: 40px;
+}
+
+nav > article {
+	-webkit-filter: blur(10px);
+}
+
+@-webkit-keyframes caret {
+	25% {
+		color: rgba(0,0,0,1);
+	}
+
+	100% {
+		color: rgba(0,0,0,0.5);
+	}
+}
+</style>
+
+<nav></nav>
+<output>0</output>
+
+<article>
+	<h1>Lorem ipsum</h1>
+	<p>One morning, when Gregor Samsa woke from trou&shy;bled dreams, he found him&shy;self trans&shy;formed in his bed into a hor&shy;ri&shy;ble ver&shy;min. He lay on his ar&shy;mour-like back, and if he lift&shy;ed his head a lit&shy;tle he could see his brown bel&shy;ly, slight&shy;ly domed and di&shy;vid&shy;ed by arch&shy;es into stiff sec&shy;tions. The bed&shy;ding was hard&shy;ly able to cov&shy;er it and seemed ready to slide off any mo&shy;ment. His many legs, piti&shy;fully thin com&shy;pared with the size of the rest of him, waved about help&shy;less&shy;ly as he looked.</p>
+
+	<p><img src="s/example2.jpg" style="width: 100%; max-width: 30em"></p>
+
+	<h2>consectetur adipisicing elit</h2>
+	<p><q>I wanted you to see what real courage is, in&shy;stead of get&shy;ting the idea that courage is a man with a gun in his hand. It&rsquo;s when you know you&rsquo;re licked before you be&shy;gin but you be&shy;gin any&shy;way and you see it through no mat&shy;ter what. </q> &mdash; To Kill a Mock&shy;ing&shy;bird</p>
+	<p><q>I learned that courage was not the ab&shy;sence of fear, but the tri&shy;umph over it. The brave man is not he who does not feel afraid, but he who con&shy;quers that fear.</q> &mdash; Nel&shy;son Man&shy;dela</p>
+
+	<ol>
+	  <li>The position of the address</li>
+	  <ol>
+	    <li>Position for receipt and treatment marks</li>
+	    <li>Sequence and position for the main information</li>
+	    <ol>
+	      <li>Position for receipt and treatment marks</li>
+	    </ol>
+	    <li>Sequence and position for the main information</li>
+	  </ol>
+	  <li>Sequence and position for the main information</li>
+	  <li>Sequence and position of firm&rsquo;s particulars</li>
+	  <li>Side margin of at least 20mm</li>
+	</ol>
+
+	<p>In&shy;dent the text block be&shy;tween half an inch and a full inch on the left side, and op&shy;tion&shy;ally the same on the right. Or on the web, about 2&ndash;5 ems.</p>
+	
+	<blockquote>Oh, what can you do with a man like that? What can you do? How can you dis&shy;suade his eye in a crowd from seek&shy;ing out the cheek with acne, the in&shy;firm hand; how can you teach him to re&shy;spond to the in&shy;es&shy;timable great&shy;ness of the race, the harsh sur&shy;face beauty of life; how can you put his fin&shy;ger for him on the ob&shy;du&shy;rate truths before which fear and hor&shy;ror are power&shy;less? The sea that morn&shy;ing was iri&shy;des&shy;cent and dark. My wife and my sis&shy;ter were swim&shy;ming&mdash;Diana and Helen&mdash;and I saw their un&shy;cov&shy;ered heads, black and gold in the dark water. I saw them come out and I saw that they were naked, unshy, beau&shy;ti&shy;ful, and full of grace, and I watched the naked women walk out of the sea.</blockquote>
+	
+	<p>Don&rsquo;t put quo&shy;ta&shy;tion marks at the ends&mdash;they&rsquo;re redundant.</p>
+	<p><q>But if I use big&shy;ger mar&shy;gins, won&rsquo;t a lot of the page be empty?</q> Sure. Is that a problem?</p>
+
+</article>
+
+
+
+<script>
+	'use strict';
+
+	var out = document.querySelector('output');
+
+	var article = document.querySelector('article');
+
+	var nav = document.querySelector('nav'),
+		div = document.createElement('article');
+
+	div.innerHTML = article.innerHTML;
+
+	nav.appendChild(div);
+
+
+	requestAnimationFrame(function(t0) {
+		var y1 = 0,
+			ts0 = Date.now();
+
+		function frame(t1) {
+			var t = t1 - t0;
+
+			var y2 = window.scrollY;
+
+			out.textContent = y2 + ', ' + t;
+
+			if (y2 !== y1)
+				div.style.webkitTransform = 'translate3d(0, ' + -y2 + 'px, 0)';
+
+			y1 = y2;
+
+			requestAnimationFrame(frame);
+		}
+
+		requestAnimationFrame(frame);
+	});
+</script>
