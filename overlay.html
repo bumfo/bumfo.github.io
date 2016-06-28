@@ -101,27 +101,6 @@ article > ol > li:last-child, article > ul > li:last-child {
 	}
 }
 
-
-#baseline_cover { background-position: 0 7px; background-image: url(s/baseline.php?h=24&r=196&g=196&b=196&s=1); }
-
-output {
-	display: block;
-	position: fixed;
-	/*position: -webkit-sticky;*/
-
-	top: 0;
-	width: 100%;
-	line-height: 40px;
-	padding: 0 1ex;
-
-	background: rgba(255,255,255,0.7);
-	border-bottom: 0.5px solid rgba(255,255,255,1);
-
-	
-
-	-webkit-animation: caret .5s ease .375s alternate infinite;
-}
-
 body {
 	padding-top: 40px;
 }
@@ -130,33 +109,19 @@ nav {
 	position: fixed;
 	top: 0;
 	height: 0;
-	overflow: hidden;
-	background: #fff;
+	background: rgba(255, 255, 255, 0.75);
 	width: 100%;
 	padding-top: 40px;
-}
 
-nav > article {
-	-webkit-filter: blur(10px);
-}
-
-@-webkit-keyframes caret {
-	25% {
-		color: rgba(0,0,0,1);
-	}
-
-	100% {
-		color: rgba(0,0,0,0.5);
-	}
+	-webkit-backdrop-filter: contrast(201%) brightness(101%) blur(30px);
 }
 </style>
 
 <nav></nav>
-<output>0</output>
 
 <article>
 	<h1>Lorem ipsum</h1>
-	<p>One morning, when Gregor Samsa woke from trou&shy;bled dreams, he found him&shy;self trans&shy;formed in his bed into a hor&shy;ri&shy;ble ver&shy;min. He lay on his ar&shy;mour-like back, and if he lift&shy;ed his head a lit&shy;tle he could see his brown bel&shy;ly, slight&shy;ly domed and di&shy;vid&shy;ed by arch&shy;es into stiff sec&shy;tions. The bed&shy;ding was hard&shy;ly able to cov&shy;er it and seemed ready to slide off any mo&shy;ment. His many legs, piti&shy;fully thin com&shy;pared with the size of the rest of him, waved about help&shy;less&shy;ly as he looked.</p>
+	<p>One morning, when Gregor Samsa woke from trou&shy;bled dreams, he found him&shy;self trans&shy;formed in his bed into a hor&shy;ri&shy;ble ver&shy;min. He lay on his ar&shy;mour-like back, and if he lift&shy;ed his head a lit&shy;tle he could see his brown bel&shy;ly, slight&shy;ly domed and di&shy;vid&shy;ed by arch&shy;es into stiff sec&shy;tions. The bed&shy;ding was hard&shy;ly able to cov&shy;er it and seemed ready to slide off any mo( &shy;)ment. His many legs, piti&shy;fully thin com&shy;pared with the size of the rest of him, waved about help&shy;less&shy;ly as he looked.</p>
 
 	<p><img src="s/example2.jpg" style="width: 100%; max-width: 30em"></p>
 
@@ -187,43 +152,3 @@ nav > article {
 	<p><q>But if I use big&shy;ger mar&shy;gins, won&rsquo;t a lot of the page be empty?</q> Sure. Is that a problem?</p>
 
 </article>
-
-
-
-<script>
-	'use strict';
-
-	var out = document.querySelector('output');
-
-	var article = document.querySelector('article');
-
-	var nav = document.querySelector('nav'),
-		div = document.createElement('article');
-
-	div.innerHTML = article.innerHTML;
-
-	nav.appendChild(div);
-
-
-	requestAnimationFrame(function(t0) {
-		var y1 = 0,
-			ts0 = Date.now();
-
-		function frame(t1) {
-			var t = t1 - t0;
-
-			var y2 = window.scrollY;
-
-			out.textContent = y2 + ', ' + t;
-
-			if (y2 !== y1)
-				div.style.webkitTransform = 'translate3d(0, ' + -y2 + 'px, 0)';
-
-			y1 = y2;
-
-			requestAnimationFrame(frame);
-		}
-
-		requestAnimationFrame(frame);
-	});
-</script>
