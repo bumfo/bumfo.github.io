@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<title>rede</title>
+<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0, minimal-ui">
+<link rel="stylesheet" type="text/css" href="s/rede.css">
+
+<fuck><div id="fuck" contenteditable="true"></div></fuck>
+<caret></caret>
+<main>
+<article>
+	<h1><span># </span>lorem ipsum</h1>
+	<h2><span>## </span>this is beautiful</h2>
+	<p class="empty"><br></p>
+	<p>One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections. The bedding was hardly able to cover it and seemed ready to slide off any moment. His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked.</p>
+	<p class="empty"><br></p>
+	<p>I wanted you to see what real courage is, instead of getting the idea            that</p>
+</article>
+</main>
+
+<script src="console.js"></script>
+<script src="oop.js"></script>
+<script src="s/caret.js"></script>
+<script src="s/rede.js"></script>
+<script>
+	'use strict';
+
+	(function() {
+		document.addEventListener('DOMContentLoaded', function() {
+			var article = document.querySelector('article');
+			article.contentEditable = true;
+			article.spellcheck = false;
+
+			var fuck = document.querySelector('#fuck');
+			fuck.contentEditable = true;
+
+			var car = document.querySelector('caret');
+
+			var caret;
+
+			var focusEl;
+
+			var ochr = '';
+			var ltt = null;
+
+			/*function diffSetText(fe, ft) {
+				var rt = fe.textContent;
+				
+				fe.normalize();
+				var fc = fe.firstChild;
+				
+				var dd = 0;
+				
+				do {
+					var ct = fc.textContent;
+					var i = 0;
+					var f3 = fc.nodeType === 3;
+					while (ft[0] === ct[i]) {
+						ft = ft.substr(1);
+						
+						if (f3) {
+							dd += 1;
+						}
+						
+						++i;
+					}
+				}
+				while (fc.nodeType !== 3 && (fc = fc.nextSibling));
+				
+				if (!fc)
+					return;
+					
+				var ll = fc.length-dd;
+				log(fc.replaceData(dd, ll, ft.substr(0, ll)));// = ft;
+				
+				var fa = document.createTextNode(ft.substr(ll));
+				
+				fe.appendChild(fa);
+			}
+			*/
+
+			/*function diffSetText(fe, ft) {
+				var rt = fe.textContent;
+				
+				var i = 0, n = rt.length;
+				
+				while (i < n && rt[i] === ft[i]) {
+					++i;
+				}
+				
+				var c = 0, ch = fe.firstChild, chh = ch;
+				
+				while (c < i && ch) {
+					if (ch.nodeType === 3)
+						c += ch.length;
+					else
+						c += ch.textContent.length;
+					
+					chh = ch;
+					ch = ch.nextSibling;
+				}
+				
+				var os = c-i;
+				
+				//log(os);
+				
+				if (os > 0) {
+					if (chh.nodeType === 3) {
+						chh.replaceData(chh.length-os, os, '');
+						
+						os = 0;
+					}
+				}
+				
+				
+				if (os === 0) {
+					fe.appendChild(document.createTextNode(ft.substr(i)));
+				} else
+					log(os);
+			}*/
+
+			function getCaret(r, o) {
+				var caret;
+				
+				var sc = r.startContainer, 	so = r.startOffset, 
+					ec = r.endContainer, 	eo = r.endOffset, 
+					cc = r.commonAncestorContainer;
+				
+				cc = getP(cc, o || article, !!o);
+				
+				if (!cc)
+					return null
+				
+				so = Caret.get(sc, so, cc);
+				eo = Caret.get(ec, eo, cc);
+
+				caret = [so, eo];
+				caret.cc = cc;
+				
+				return caret;
+			}
+			
+			function setCaret(cc, caret, virtual) {
+				var so = caret[0],
+					eo = caret[1];
+				
+				var rtn;
+					
+				setRange(function(r) {
+					//r = document.createRange();
+					
+					Caret.set(cc, so, r.setStart.bind(r), false);
+					Caret.set(cc, eo, r.setEnd.bind(r), so === eo);
+					// r.collapse(true);
+					
+					if (!virtual)
+						return r;
+					else
+						rtn = r;
+				});
+				
+				return rtn;
+			}
+
+			function setTextP(ft) {
+				if (ft === '\n')
+					ft = '';
+				if (ft) {
+					focusEl.textContent = ft;
+					// focusEl.classList.remove('empty');
+				} else {
+					focusEl.innerHTML = '<br>';
+					// focusEl.classList.add('empty');
+				}
+				
+				focusEl = blockFormat(focusEl, ft);
+			}
+
+			function setTextF(fk, ft, br) {
+				if (br === void 0)
+					br = '<br>';
+				if (ft === '\n')
+					ft = '';
+				if (ft) {
+					fk.textContent = ft;
+				} else {
+					fk.innerHTML = br;
+				}
+			}
+
+			function updateCaret(r) {
+				caret = getCaret(r);
+			}
+
+			function showCaret(r) {
+				if (!r)
+					return;
+
+				var fix = false;
+					
+				updateCaret(r);
+
+				var so = r.startOffset;
+
+				if (so === r.endOffset) {
+					var lc = r.startContainer;
+
+					if (so > 0) {
+						if (lc.nodeType === 3) {
+							// lc = lc.substringData(so-1,1);
+							// if (lc !== ' ')
+							if (so === lc.length) {
+								r.setStart(r.startContainer, so-1);
+								fix = true;							}
+						} else {
+							// log('todo nodeType !== 3', r);
+
+						}
+					} else if (lc.nodeType === 1) {
+						while (lc.firstChild)
+							lc = lc.firstChild;
+						r.setStart(lc, 0);
+					}
+				}
+				
+				var rect = r.getClientRects();//getBoundingClientRect();
+			
+				// console.log(rect, r.getBoundingClientRect());
+
+				rect = rect[rect.length-1];
+
+				if (!caret)
+					return;
+				if (!rect) {
+					//log(caret);
+					// console.log(r);
+					var fe = caret.cc;
+					var fc = fe.firstChild;
+					if (!fc)
+						return;
+					// log(fc);
+					if (fc.nodeType !== 1)// && fc.nodeType !== 3)
+						return;
+					// while (fc.firstChild)
+					// 	fc = fc.firstChild;
+					rect = (fc.getClientRects()[0]);
+					// console.log(rect);
+					if (!rect)
+						return;
+
+					fix = true;
+				}
+
+				if (fix) {
+					rect = {left: rect.left, top: rect.top, right: rect.left, bottom: rect.bottom, width: rect.width, height: rect.height};
+					car.classList.add('fix');
+				} else {
+					car.classList.remove('fix');
+				}
+				
+				car.style.left = rect.left+'px';
+				car.style.top = rect.top+window.scrollY+'px';
+				car.style.height = rect.height+'px';
+
+				car.style.width = rect.width+'px';
+				
+				if (focusEl !== caret.cc) {
+					focusEl = caret.cc;
+					var ft = focusEl.textContent;
+					setTextF(fuck, ft);
+				}
+					
+				if (document.activeElement !== fuck)
+					fuck.focus();
+					
+				try{
+				
+				setCaret(fuck, caret);
+				
+				}catch(ex){
+					log(ex.stack);
+				}
+			}
+
+			function touchCaret(x, y) {
+				var r = positCaret(x, y-window.scrollY);
+
+				console.log(r);
+				
+				showCaret(r);
+			}
+
+			function inputCaret() {
+				var s = window.getSelection();
+				
+				if (!(s.rangeCount > 0)) {
+					log(s);
+					return;
+				}
+				
+				var r = s.getRangeAt(0);
+				
+				caret = getCaret(r, fuck);
+				
+				if (!caret)
+					log(r);
+
+				ox = NaN;
+			}
+
+			function blockFormat(fe, ft) {
+				var m;
+				if (m = ft.match(/^(#{1,3}) /)) {
+					var l = m[1].length;
+					
+					var hn = 'h'+l;
+					
+					var fc = fe.firstChild;
+					
+					fc.deleteData(0, m[0].length);
+					
+					var sp = document.createElement('span');
+					sp.textContent = m[0];
+					
+					fe.insertBefore(sp, fc);
+					
+					fe = changeTagName(fe, hn);
+				} else
+					fe = changeTagName(fe, 'p');
+
+				if (ft) {
+					fe.classList.remove('empty');
+				} else {
+					fe.classList.add('empty');
+				}
+				
+				return fe;
+			}
+
+			function changeTagName(fe, hn) {
+				if (hn === fe.tagName.toLowerCase())
+					return fe;
+				var h = document.createElement(hn);
+				h.innerHTML = fe.innerHTML;
+				fe.parentNode.replaceChild(h, fe);
+				return h;
+			}
+
+			function oninput() {
+				var ft = fuck.textContent;
+
+				if (ft === '')
+					fuck.innerHTML = '<br>';
+				
+				setTextP(ft);
+			
+				inputCaret();
+				
+				var r = setCaret(focusEl, caret, true);
+				
+				showCaret(r);
+			}
+
+			function ontouch(e) {
+				e.preventDefault();
+				
+				touchCaret(e.pageX, e.pageY);
+
+				ox = NaN;
+			}
+
+
+			article.addEventListener('touchstart', function(e) {
+				ontouch(e);
+			});
+
+			article.addEventListener('touchmove', function(e) {
+				ontouch(e);
+			});
+
+			article.addEventListener('touchend', function(e) {
+				ontouch(e);
+			});
+
+			var md = false;
+
+			article.addEventListener('mousedown', function(e) {
+				// log('mousedown');
+
+				md = true;
+
+				ontouch(e);
+			});
+
+			window.addEventListener('mousemove', function(e) {
+				if (md) {
+					ontouch(e);
+				}
+			});
+
+
+			article.addEventListener('mouseup', function(e) {
+				md = false;
+
+				ontouch(e);
+			});
+
+
+
+			fuck.addEventListener('focus', function() {
+				car.classList.add('caret');
+			});
+
+			fuck.addEventListener('blur', function() {
+				car.classList.remove('caret');
+			});
+
+			fuck.addEventListener('keypress', function(e) {
+				switch (e.keyCode) {
+				case 13:
+					e.preventDefault();
+					
+					var t = focusEl.textContent;
+					var rt = t.substr(caret[1]);
+					var lt = t.substr(0, caret[0]);
+					
+					setTextP(lt);
+					
+					var ne = document.createElement('p');
+					var bef = focusEl.nextElementSibling;
+					
+					if (bef)
+						article.insertBefore(ne, bef);
+					else
+						article.appendChild(ne);
+						
+					focusEl = ne;
+					setTextF(fuck, rt);
+					
+					setCaret(fuck, caret=[0,0]);
+					
+					oninput();
+					break;
+				default:
+					if (e.metaKey || e.ctrlKey) {
+						// e.preventDefault();
+						console.log(e);
+						break;
+					}
+
+					break;
+
+
+					
+
+					e.preventDefault();
+					//log(e.keyCode);
+					var chr = String.fromCharCode(e.keyCode);
+					
+					ochr += chr;
+					
+					clearTimeout(ltt);
+					ltt = setTimeout(function() {
+						fuck.normalize();
+
+						var fc = fuck.firstChild;
+						
+						if (fc && fc.nodeType === 3) {
+							fc.replaceData(caret[0],0,ochr);
+							caret[0] += ochr.length;
+							caret[1] = caret[0];
+							ochr = '';
+							
+							setCaret(fuck, caret);
+							
+							oninput();
+						}
+						else {
+							document.execCommand('insertText', false, ochr);
+							ochr = '';
+						}
+					}, 15);
+				}
+			});
+
+			var ox = NaN;
+
+			fuck.addEventListener('keydown', function(e) {
+				var keyCode = e.keyCode;
+
+				switch (keyCode) {
+				case 8:
+					if (!caret)
+						inputCaret();
+
+					if (caret[0] === 0) {
+						e.preventDefault();
+						var pes;
+						if (pes = focusEl.previousElementSibling) {
+							var t = focusEl.textContent;
+							
+							focusEl.parentNode.removeChild(focusEl);
+							
+							focusEl = pes;
+							
+							var pt = pes.textContent;
+							
+							if (pt === '\n')
+								pt = '';
+							
+							setTextF(fuck, pt+t);
+							//fuck.innerHTML = '';
+							
+							//fuck.focus();
+							
+							setCaret(fuck, caret = [pt.length, pt.length]);
+							
+							oninput();
+						}
+					} else {
+						//log(caret)
+					}
+					break;
+				case 37:
+				// case 38:
+				case 39:
+				// case 40:
+					setTimeout(function() {
+						inputCaret();
+
+						var r = setCaret(focusEl, caret, true);
+						
+						showCaret(r);
+					});
+					break;
+				case 38:
+				case 40:
+					e.preventDefault();
+					var d = keyCode === 38 ? -1 : 1;
+
+					// log(car)
+
+					var x = parseInt((car.style.left.match(/^(.+)px$/)||[0])[1]),
+						y = parseInt((car.style.top.match(/^(.+)px$/)||[0])[1]),
+						h = parseInt((car.style.height.match(/^(.+)px$/)||[0])[1]);
+
+					if (!isNaN(ox))
+						x = ox;
+					else
+						ox = x;
+
+					console.log(x, y, h, d);
+
+					y += h/2 + d * h * 7/8;
+
+					// log(x, y);
+
+					touchCaret(x, y);
+
+					break;
+				// case 67: // c
+				// case 86: // v
+				// 	if (e.metaKey || e.ctrlKey) {
+				// 		e.preventDefault();
+
+				// 		document.execCommand('insertText', false, e.clipboardData.getData("text/plain"));
+				// 		// console.log(e);
+				// 		break;
+				// 	}
+				// default:
+				// 	if (e.metaKey || e.ctrlKey) {
+				// 		e.preventDefault();
+				// 		console.log(e);
+				// 		break;
+				// 	}
+				}
+			});
+
+			fuck.addEventListener('input', function(e) {
+				oninput();
+			});
+
+			fuck.addEventListener('paste', function(e) {
+				e.preventDefault();
+				document.execCommand('insertText', false, e.clipboardData.getData("text/plain"));
+			});
+		});
+	}());
+</script>
