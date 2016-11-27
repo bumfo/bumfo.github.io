@@ -78,12 +78,17 @@ s>span {
   color: transparent;
 }
 s>span::before {
-  content: '\00a0';
+  content: '\a0';
   color: #b4b4b4;
   text-decoration: line-through;
-  display: inline-block;
-  width: 0;
+  text-decoration-skip: none;
+  -webkit-text-decoration-skip: none;
+  position: absolute;
+  /*display: inline-block;*/
+  /*width: 0;*/
   white-space: pre-wrap;
+  pointer-events: none;
+  -webkit-user-select: none;
 }
 s>s {
   text-decoration: line-through;
@@ -97,12 +102,17 @@ u>span {
   color: transparent;
 }
 u>span::before {
-  content: '\00a0';
+  content: '\a0';
   color: #b4b4b4;
   text-decoration: underline;
-  display: inline-block;
-  width: 0;
+  text-decoration-skip: none;
+  -webkit-text-decoration-skip: none;
+  position: absolute;
+  /*display: inline-block;*/
+  /*width: 0;*/
   white-space: pre-wrap;
+  pointer-events: none;
+  -webkit-user-select: none;
 }
 u>u {
   color: #2ECC77;
@@ -113,17 +123,20 @@ u>u>span {
   color: #333;
   text-decoration: none;
 }
+u>u>span::before {
+  content: '';
+}
 
 f-link>span {
   color: #b4b4b4;
 }
 
-f-link>f-href {
+f-href {
   position: relative;
   cursor: default;
 }
 
-f-link>f-href>span {
+f-href>span {
   color: #333;
   -webkit-text-fill-color: transparent;
   position: absolute;
@@ -132,11 +145,11 @@ f-link>f-href>span {
   text-indent: -9999px;
 }
 
-f-link>f-href>span::selection {
+f-href>span::selection {
   background: transparent;
 }
 
-f-link>f-href::before {
+f-href::before {
   position: relative;
   display: inline-block;
 
@@ -148,7 +161,7 @@ f-link>f-href::before {
   bottom: -3px;
 }
 
-f-link>f-href::before { background-image: url(link.svg); }
+f-href::before { background-image: url(link.svg); }
 
 
 /*
@@ -205,8 +218,8 @@ h6>span::before {
   width: 16px;
   height: 17px;
   bottom: 3px;
-  /*pointer-events: none;*/
-  /*-webkit-user-select: none;*/
+  pointer-events: none;
+  -webkit-user-select: none;
 
   cursor: default;
 }
@@ -229,7 +242,7 @@ blockquote::before {
   position: absolute;
   top: -7px;
   bottom: -4px;
-  left: -12px;
+  left: -16px;
   border-right: 2px solid #2ECC77;
 }
 
@@ -266,8 +279,8 @@ pre {
   /*outline: 1px solid #eee;*/
   background: #f9f9f9;
   /*background: rgba(0,0,0,0.02);*/
-  padding: 0 10px;
-  margin: -0 -12px;
+  padding: 0 14px;
+  margin: -0 -16px;
 
   padding-top: 7px;
   margin-top: -7px;
@@ -301,4 +314,46 @@ pre>span:last-child {
 
 ::selection {
   background: rgba(46, 204, 119, 0.1);
+}
+
+
+
+@media (max-width: 560px) {
+  body {
+    padding-top: 4.4rem;
+  }
+  article {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas-italic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold-italic.ttf) format('truetype');
 }
