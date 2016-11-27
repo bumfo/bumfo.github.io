@@ -1,7 +1,7 @@
 html {
   font: 400 10px/1 sans-serif;
 }
-body, h1, h2, h3, h4, h5, h6, p, pre {
+body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
@@ -13,23 +13,19 @@ html {
   font-family: consolas, monospace, sans-serif;
   color: #333;
 
-  background-image: linear-gradient(#eee 0.5px, transparent 0.5px);
+  background-image: linear-gradient(#f6f6f6 0.5px, transparent 0.5px);
   background-size: 100% 22px;
 }
 body {
   font-size: 1.6rem;
   line-height: 2.2rem;
   
-  max-width: 35em;
-  margin: 0 auto;
-  padding: 8.8rem 10rem;
+  padding: 8.8rem 0;
 }
 article {
-  border: 1px solid #eee;
-  border-top: none;
-  border-bottom: none;
-
-  padding: 0.7rem 0 1.5rem 0;
+  max-width: 35em;
+  margin: 0 auto;
+  padding: 0.7rem 10rem 1.5rem 10rem;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -48,4 +44,195 @@ h1 {
 }
 h2 {
   font-size: 2.0rem;
+}
+
+a[href] {
+  color: #2ecc77;
+  text-decoration: none;
+}
+
+i>span,
+b>span,
+s>span,
+u>span,
+code>span {
+  font-style: normal;
+  font-weight: 400;
+  color: #b4b4b4;
+}
+i {
+}
+b {
+  font-weight: 600;
+}
+s {
+  color: #888;
+  /*text-decoration: line-through;*/
+  text-decoration: none;
+}
+u {
+  text-decoration: none;
+}
+s>span {
+  color: transparent;
+}
+s>span::before {
+  content: '\00a0';
+  color: #b4b4b4;
+  text-decoration: line-through;
+  display: inline-block;
+  width: 0;
+  white-space: pre-wrap;
+}
+s>s {
+  text-decoration: line-through;
+}
+
+u {
+  /*text-decoration: line-through;*/
+  text-decoration: none;
+}
+u>span {
+  color: transparent;
+}
+u>span::before {
+  content: '\00a0';
+  color: #b4b4b4;
+  text-decoration: underline;
+  display: inline-block;
+  width: 0;
+  white-space: pre-wrap;
+}
+u>u {
+  color: #2ECC77;
+  /*-webkit-text-fill-color: #333;*/
+  text-decoration: underline;
+}
+u>u>span {
+  color: #333;
+  text-decoration: none;
+}
+
+/*
+code {
+  outline: 1px solid #eee;
+  outline-offset: 3px;
+  /*background: rgba(0,0,0,0.02);* /
+  /*box-shadow: 0 0 0 3px rgba(0,0,0,0.02);* /
+
+  border-radius: 10px;
+  background: #f9f9f9;
+  box-shadow: 0 0 0 3px #f9f9f9; /*0 0 0 4px #eee* /
+}
+*/
+
+code {
+  /*border: 1px solid #eee;*/
+  /*border-radius: 10px;*/
+  position: relative;
+  outline: 1px solid #eee;
+  background: #f9f9f9;
+
+  padding: 3px;
+  margin: -3px;
+
+  /*outline-offset: 3px;*/
+  /*box-shadow: 0 0 0 3px #f9f9f9;*/ /*0 0 0 4px #eee*/
+}
+
+h1>span,
+h2>span,
+h3>span,
+h4>span,
+h5>span,
+h6>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+}
+h1>span::after,
+h2>span::after,
+h3>span::after,
+h4>span::after,
+h5>span::after,
+h6>span::after {
+  content: '\200B';
+  display: inline-block;
+  width: 0;
+}
+
+h1>span::before,
+h2>span::before,
+h3>span::before,
+h4>span::before,
+h5>span::before,
+h6>span::before {
+  position: absolute;
+  right: 12px;
+
+  content: '\200b';
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 17px;
+  bottom: 3px;
+  pointer-events: none;
+  -webkit-user-select: none;
+}
+h1>span::before {
+  bottom: 6.5px;
+}
+h1>span::before { background-image: url(H1.svg); }
+h2>span::before { background-image: url(H2.svg); }
+h3>span::before { background-image: url(H3.svg); }
+h4>span::before { background-image: url(H4.svg); }
+h5>span::before { background-image: url(H5.svg); }
+h6>span::before { background-image: url(H6.svg); }
+
+blockquote {
+  position: relative;
+}
+
+blockquote::before {
+  content: '\200b';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -12px;
+  border-right: 2px solid #2ECC77;
+}
+
+blockquote>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+}
+blockquote>span::after {
+  content: '\200B';
+  display: inline-block;
+  width: 0;
+}
+blockquote>span::before {
+  position: absolute;
+  right: 12px;
+
+  content: '\200b';
+  /*border-right: 2px solid #2ECC77;*/
+  width: 16px;
+  /*height: 17px;*/
+  top: 2px;
+  bottom: 3px;
+  pointer-events: none;
+  -webkit-user-select: none;
+}
+
+::selection {
+  background: rgba(46, 204, 119, 0.1);
 }
