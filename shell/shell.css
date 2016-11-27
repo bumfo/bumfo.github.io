@@ -63,7 +63,7 @@ article>* {
 }
 
 article>.highlight {
-  background: rgba(255, 255, 0, 0.5);
+  background: rgba(255, 255, 0, 0.2);
   transition: background ease-out .1s;
 }
 
@@ -75,4 +75,33 @@ article>.highlight {
     padding-left: 4rem;
     padding-right: 4rem;
   }
+}
+
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas-italic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold-italic.ttf) format('truetype');
 }
