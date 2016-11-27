@@ -20,7 +20,7 @@ body {
   font-size: 1.6rem;
   line-height: 2.2rem;
   
-  padding: 8.8rem 0;
+  padding: 8.8rem 0 0 0;
 }
 article {
   max-width: 35em;
@@ -55,7 +55,8 @@ i>span,
 b>span,
 s>span,
 u>span,
-code>span {
+code>span,
+pre>span {
   font-style: normal;
   font-weight: 400;
   color: #b4b4b4;
@@ -113,6 +114,43 @@ u>u>span {
   text-decoration: none;
 }
 
+f-link>span {
+  color: #b4b4b4;
+}
+
+f-link>f-href {
+  position: relative;
+  cursor: default;
+}
+
+f-link>f-href>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+  position: absolute;
+  pointer-events: none;
+  -webkit-user-select: none;
+  text-indent: -9999px;
+}
+
+f-link>f-href>span::selection {
+  background: transparent;
+}
+
+f-link>f-href::before {
+  position: relative;
+  display: inline-block;
+
+  content: '\200b';
+  background-repeat: no-repeat;
+  width: 14px;
+  height: 13px;
+  pointer-events: none;
+  bottom: -3px;
+}
+
+f-link>f-href::before { background-image: url(link.svg); }
+
+
 /*
 code {
   outline: 1px solid #eee;
@@ -135,6 +173,7 @@ h5>span,
 h6>span {
   color: #333;
   -webkit-text-fill-color: transparent;
+  /*color: transparent;*/
   position: relative;
   display: inline-block;
   width: 100px;
@@ -166,8 +205,10 @@ h6>span::before {
   width: 16px;
   height: 17px;
   bottom: 3px;
-  pointer-events: none;
-  -webkit-user-select: none;
+  /*pointer-events: none;*/
+  /*-webkit-user-select: none;*/
+
+  cursor: default;
 }
 h1>span::before {
   bottom: 6.5px;
@@ -252,6 +293,11 @@ pre>span:last-child {
   /*display: block;*/
   /*height: 11px;*/
 }
+
+
+
+
+
 
 ::selection {
   background: rgba(46, 204, 119, 0.1);
