@@ -1,7 +1,7 @@
 html {
   font: 400 10px/1 sans-serif;
 }
-body, h1, h2, h3, h4, h5, h6, p, pre {
+body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
@@ -46,6 +46,18 @@ h2 {
   font-size: 2.0rem;
 }
 
+blockquote {
+  position: relative;
+}
+blockquote::before {
+  content: '\200b';
+  position: absolute;
+  top: -7px;
+  bottom: -4px;
+  left: -16px;
+  border-right: 2px solid #2ECC77;
+}
+
 article>* {
   transition: background ease-out .2s;
 }
@@ -53,4 +65,14 @@ article>* {
 article>.highlight {
   background: rgba(255, 255, 0, 0.5);
   transition: background ease-out .1s;
+}
+
+@media (max-width: 560px) {
+  body {
+    padding-top: 4.4rem;
+  }
+  article {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
 }
