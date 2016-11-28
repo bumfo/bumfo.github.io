@@ -188,7 +188,7 @@ function formatElementInner(el) {
         }
       }
     } else {
-      div.textContent = u.replace(/\s+/g, ' ').replace(/^ | $/g, '\xa0')
+      div.textContent = u; //.replace(/\s/g, ' ').replace(/ ( +)/, function() {}).replace(/^ | $/g, '\xa0')
       stack.push(div.innerHTML)
     }
   })
@@ -248,11 +248,11 @@ function onInput(e) {
 }
 
 function onIMEStart(e) {
-  isPausedDOM = true
+  // isPausedDOM = true
 }
 
 function onIMEUpdate(e) {}
 
 function onIMEEnd(e) {
-  isPausedDOM = false
+  // isPausedDOM = false
 }
