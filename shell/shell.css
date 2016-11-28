@@ -1,7 +1,7 @@
 html {
   font: 400 10px/1 sans-serif;
 }
-body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code {
+body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code, tt {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
@@ -10,7 +10,7 @@ body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code {
 }
 
 html {
-  font-family: consolas, monospace, sans-serif;
+  font-family: consolas, monospace, sans-serif; /* 'Avenir Next',  */
   color: #333;
 
   /*background-image: linear-gradient(#eee 0.5px, transparent 0.5px);*/
@@ -55,7 +55,7 @@ blockquote::before {
   top: -7px;
   bottom: -4px;
   left: -16px;
-  border-right: 2px solid #2ECC77;
+  border-right: 2px solid #ccc;
 }
 
 article>* {
@@ -66,6 +66,82 @@ article>.highlight {
   background: rgba(255, 255, 0, 0.2);
   transition: background ease-out .1s;
 }
+
+h1>tt:first-child,
+h2>tt:first-child,
+h3>tt:first-child,
+h4>tt:first-child,
+h5>tt:first-child,
+h6>tt:first-child {
+  color: #B4B4B4;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+  font-weight: 400;
+}
+
+h1>tt:first-child::after, 
+h2>tt:first-child::after, 
+h3>tt:first-child::after, 
+h4>tt:first-child::after, 
+h5>tt:first-child::after, 
+h6>tt:first-child::after {
+  content: '\200b';
+  display: inline-block;
+  width: 0;
+}
+
+blockquote>tt:first-child {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+  font-weight: 400;
+}
+
+u {
+  color: #999;
+}
+u>span {
+  color: #333;
+}
+tt-u {
+  color: #B4B4B4;
+  text-decoration: underline;
+}
+tt-u>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+}
+s {
+  color: #888;
+}
+s>span {
+  color: #888;
+}
+tt-s {
+  color: #B4B4B4;
+  text-decoration: line-through;
+}
+tt-s>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+}
+tt-i {
+  color: #B4B4B4;
+}
+tt-b {
+  color: #B4B4B4;
+}
+b {
+  font-weight: 600;
+}
+
 
 @media (max-width: 560px) {
   body {

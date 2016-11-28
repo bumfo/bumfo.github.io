@@ -1,4 +1,7 @@
 let article = document.querySelector('article')
+const CaretPosition = require('./CaretPosition.js')(article)
+const Util = require('./Util.js')
+
 new MutationObserver(function(records, observer) {
   onMutation(records)
 }).observe(article, {
@@ -10,6 +13,9 @@ new MutationObserver(function(records, observer) {
   // characterDataOldValue: true,
   // attributeFilter: [],
 })
+article.addEventListener('input', function(e) {
+  onInput(e)
+})
 article.addEventListener('compositionstart', function(e) {
   onIMEStart(e)
 })
@@ -19,17 +25,9 @@ article.addEventListener('compositionupdate', function(e) {
 article.addEventListener('compositionend', function(e) {
   onIMEEnd(e)
 })
-
-function isDescendant(container, node) {
-  return container.contains(node) && container != node
-}
-
-function proceedUp(container, cur) {
-  while (isDescendant(container, cur.parentNode)) {
-    cur = cur.parentNode
-  }
-  return cur
-}
+window.addEventListener('undo', function(e) {
+  e.preventDefault()
+})
 
 function getChangedChildSetOf(container, records) {
   let elSet = new Set()
@@ -46,10 +44,10 @@ function getChangedChildSetOf(container, records) {
   return new Set(
     Array.from(elSet)
     .filter(function(target) {
-      return isDescendant(container, target)
+      return Util.isDescendant(container, target)
     })
     .map(function(target) {
-      return proceedUp(container, target)
+      return Util.proceedUp(container, target)
     })
   )
 }
@@ -111,175 +109,112 @@ function changeTagName(el, tagOld, tagNew) {
   return elNew
 }
 
-function formatElement(el) {
+function formatElementOuter(el) {
   let str = el.textContent
   let tagOld = el.nodeName.toLowerCase()
   let tagNew = getFormatedTag(str)
 
   if (tagOld !== tagNew) {
-    console.log(tagOld, tagNew)
+    // console.log(tagOld, tagNew)
     return changeTagName(el, tagOld, tagNew)
   }
 
   return el
 }
 
-const CaretPosition = function(container) {
-  function getSelection() {
-    return window.getSelection()
+function formatElementInner(el) {
+  let str = el.textContent
+
+  if (str === '') {
+    return
   }
 
-  function getSelectionRange() {
-    let selection = getSelection()
-    if (selection.rangeCount > 0)
-      return selection.getRangeAt(0)
-    return null
+  let code = []
+
+  let div = document.createElement('div')
+
+  let stack = []
+  let op = []
+
+  let tags = {
+    '*': 'b',
+    '_': 'u',
+    '/': 'i',
+    '-': 's',
   }
 
-  function replaceSelectionRange(selection, range) {
-    selection.removeAllRanges()
-    selection.addRange(range)
-  }
-
-  function proceedUpOffset(cur, offset) {
-    while (isDescendant(container, cur.parentNode)) {
-      while (cur.previousSibling) {
-        cur = cur.previousSibling
-        if (cur.nodeType === 1 || cur.nodeType === 3) {
-          offset += cur.textContent.length // todo, prove that `textContent` is the best way
-        }
-      }
-
-      cur = cur.parentNode
-    }
-    return [cur, offset]
-  }
-
-  function proceedDownOffset(cur, offset) {
-    // console.log(cur.textContent.length, offset)
-
-    while (cur.textContent.length >= offset) {
-      if (cur.nodeType === 3) {
-        return [cur, offset]
-      } else if (cur.nodeType === 1) {
-        if (!cur.firstChild) {
-          return [cur, offset]
-        }
-
-        cur = cur.firstChild
-        if (cur.textContent.length < offset) {
-          offset -= cur.textContent.length
-        } else {
-          continue
-        }
-
-        while (cur.nextSibling) {
-          cur = cur.nextSibling
-          if (cur.nodeType === 1 || cur.nodeType === 3) {
-            if (cur.textContent.length < offset) {
-              offset -= cur.textContent.length
-            } else {
-              break
-            }
-          }
-        }
-        continue
-      } else {
-        return null
-      }
-    }
-    return null
-  }
-
-  let savedStartPos = null
-  let savedEndPos = null
-  let savedIsCollapsed = true
-
-  function saveCaretPosition() {
-    let range = getSelectionRange()
-    if (!range) {
-      savedIsCollapsed = true
-      savedStartPos = null
-      savedEndPos = null
-      return
-    }
-    if (range.collapsed) {
-      savedIsCollapsed = true
-      savedStartPos = proceedUpOffset(range.startContainer, range.startOffset)
-      savedEndPos = savedStartPos
-    } else {
-      savedIsCollapsed = false
-      savedStartPos = proceedUpOffset(range.startContainer, range.startOffset)
-      savedEndPos = proceedUpOffset(range.endContainer, range.endOffset)
-
-      if (savedStartPos[0] != savedEndPos[0]) {
-        console.log('NON SAME NODE COLLAPSED RANGE IS TO BE IMPLEMENTED')
-        console.log([range.startContainer, range.startOffset], [range.endContainer, range.endOffset])
-      }
-    }
-  }
-
-  function restoreCaretPosition(elOld, el) {
-    if (!savedStartPos || !savedEndPos)
-      return
-      // if (elOld === el)
-      //   return
-    if (elOld !== savedStartPos[0] || elOld !== savedEndPos[0])
-      return
-
-    let localStartPos = proceedDownOffset(el, savedStartPos[1])
-
-    if (!localStartPos) {
-      console.error('CNNOT RESTORE START POS')
-      return
-    }
-
-    let changed = false
-    let range = getSelectionRange() || document.createRange()
-
-    curStartPos = [range.startContainer, range.startOffset]
-
-    if (curStartPos[0] !== localStartPos[0] || curStartPos[1] !== localStartPos[1]) {
-      range.setStart(localStartPos[0], localStartPos[1])
-      changed = true
-    }
-
-    if (!savedIsCollapsed) {
-      let localEndPos = proceedDownOffset(el, savedEndPos[1])
-
-      if (!localEndPos) {
-        console.error('CNNOT RESTORE END POS')
+  str.replace(/(^#{1,6}\s|^>\s|[*\/\-]|\b_|_\b)|(?:(?![*\/\-]|\b_|_\b).)+/g, function(u, v) {
+    if (v) {
+      if (/^#{1,6}\s$/.test(v)) {
+        stack.push('<tt>')
+        stack.push(v)
+        stack.push('</tt>')
         return
       }
 
-      curEndPos = [range.endContainer, range.endOffset]
+      if (/^>\s/.test(v)) {
+        stack.push('<tt>')
+        stack.push(v)
+        stack.push('</tt>')
+        return
+      }
 
-      if (curEndPos[0] !== localEndPos[0] || curEndPos[1] !== localEndPos[1]) {
-        range.setEnd(localEndPos[0], localEndPos[1])
-        changed = true
+      if (op.length === 0 || op.lastIndexOf(v) === -1) {
+        op.push(v)
+        stack.push(v)
+      } else {
+        while (op.length && op[op.length - 1] !== v) {
+          op.pop()
+        }
+
+        if (op.length) {
+          let tag = tags[v]
+          let mark = '<tt-' + tag + '><span>' + v + '</span></tt-' + tag + '>'
+          let beginTag = '<' + tag + '><span>'
+          let endTag = '</span></' + tag + '>'
+
+          op.pop()
+          let sta = []
+          while (stack.length > 0 && stack[stack.length - 1] !== v) {
+            sta.push(stack.pop())
+          }
+          stack.pop()
+          stack.push(mark + beginTag)
+          while (sta.length) {
+            stack.push(sta.pop())
+          }
+          stack.push(endTag + mark)
+        }
       }
     } else {
-      if (!range.collapsed) {
-        range.collapse(true)
-        changed = true
-      }
+      div.textContent = u
+      stack.push(div.innerHTML)
     }
+  })
 
-    if (changed) {
-      replaceSelectionRange(getSelection(), range)
-    }
-  }
+  let html = stack.join('')
 
-  return {
-    save: saveCaretPosition,
-    tryRestore: restoreCaretPosition
+  if (el.innerHTML != html) {
+    ignoreMutation = true
+    el.innerHTML = html
   }
-}(article)
+}
+
+function formatElement(el) {
+  el = formatElementOuter(el)
+  formatElementInner(el)
+  return el
+}
+
 
 let isPausedDOM = false
 let changedChildSet = null
+let ignoreMutation = false
 
 function onMutation(records) {
+  if (ignoreMutation)
+    return
+
   let set = getChangedChildSetOf(article, records)
 
   if (changedChildSet) {
@@ -307,10 +242,16 @@ function processChangedChildSet() {
   changedChildSet = null
 }
 
+function onInput(e) {
+  ignoreMutation = false
+}
+
 function onIMEStart(e) {
   isPausedDOM = true
 }
+
 function onIMEUpdate(e) {}
+
 function onIMEEnd(e) {
   isPausedDOM = false
 }
