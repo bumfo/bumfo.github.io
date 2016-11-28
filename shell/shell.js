@@ -10,6 +10,15 @@ new MutationObserver(function(records, observer) {
   // characterDataOldValue: true,
   // attributeFilter: [],
 })
+article.addEventListener('compositionstart', function(e) {
+  onIMEStart(e)
+})
+article.addEventListener('compositionupdate', function(e) {
+  onIMEUpdate(e)
+})
+article.addEventListener('compositionend', function(e) {
+  onIMEEnd(e)
+})
 
 function isDescendant(container, node) {
   return container.contains(node) && container != node
@@ -22,7 +31,7 @@ function proceedUp(container, cur) {
   return cur
 }
 
-function getChangedChildrenOf(container, records) {
+function getChangedChildSetOf(container, records) {
   let elSet = new Set()
 
   records.forEach(function(record) {
@@ -34,16 +43,14 @@ function getChangedChildrenOf(container, records) {
       })
   })
 
-  return Array.from(
-    new Set(
-      Array.from(elSet)
-      .filter(function(target) {
-        return isDescendant(container, target)
-      })
-      .map(function(target) {
-        return proceedUp(container, target)
-      })
-    )
+  return new Set(
+    Array.from(elSet)
+    .filter(function(target) {
+      return isDescendant(container, target)
+    })
+    .map(function(target) {
+      return proceedUp(container, target)
+    })
   )
 }
 
@@ -269,17 +276,41 @@ const CaretPosition = function(container) {
   }
 }(article)
 
+let isPausedDOM = false
+let changedChildSet = null
+
 function onMutation(records) {
-  let muta = getChangedChildrenOf(article, records)
+  let set = getChangedChildSetOf(article, records)
 
-  // console.log(records, muta)
+  if (changedChildSet) {
+    set.forEach(function(node) {
+      changedChildSet.add(node)
+    })
+  } else {
+    changedChildSet = set
+  }
 
+  if (!isPausedDOM) {
+    processChangedChildSet()
+  }
+}
+
+function processChangedChildSet() {
   CaretPosition.save()
-  muta.forEach(function(el) {
+  changedChildSet.forEach(function(el) {
     let elOld = el
     el = formatElement(el)
     CaretPosition.tryRestore(elOld, el)
 
     highlightElement(el)
   })
+  changedChildSet = null
+}
+
+function onIMEStart(e) {
+  isPausedDOM = true
+}
+function onIMEUpdate(e) {}
+function onIMEEnd(e) {
+  isPausedDOM = false
 }
