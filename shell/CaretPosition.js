@@ -132,7 +132,7 @@ const CaretPosition = function(container) {
         return
       }
 
-      curEndPos = [range.endContainer, range.endOffset]
+      let curEndPos = [range.endContainer, range.endOffset]
 
       if (curEndPos[0] !== localEndPos[0] || curEndPos[1] !== localEndPos[1]) {
         range.setEnd(localEndPos[0], localEndPos[1])

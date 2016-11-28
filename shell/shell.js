@@ -35,10 +35,12 @@ function getChangedChildSetOf(container, records) {
   records.forEach(function(record) {
     if (record.type === 'characterData')
       elSet.add(record.target)
-    else if (record.type === 'childList')
+    else if (record.type === 'childList') {
+      elSet.add(record.target)
       record.addedNodes.forEach(function(node) {
         elSet.add(node)
       })
+    }
   })
 
   return new Set(
@@ -115,7 +117,6 @@ function formatElementOuter(el) {
   let tagNew = getFormatedTag(str)
 
   if (tagOld !== tagNew) {
-    // console.log(tagOld, tagNew)
     return changeTagName(el, tagOld, tagNew)
   }
 
@@ -187,7 +188,7 @@ function formatElementInner(el) {
         }
       }
     } else {
-      div.textContent = u
+      div.textContent = u.replace(/\s+/g, ' ').replace(/^ | $/g, '\xa0')
       stack.push(div.innerHTML)
     }
   })
