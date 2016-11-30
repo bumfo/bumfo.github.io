@@ -1,0 +1,200 @@
+html {
+  font: 400 10px/1 sans-serif;
+}
+body, h1, h2, h3, h4, h5, h6, p, pre, blockquote, code, tt, input, textarea {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  line-height: inherit;
+}
+input, textarea {
+  color: inherit;
+  display: inherit;
+  box-sizing: inherit;
+  background: none;
+  border: none;
+  resize: none;
+}
+
+html {
+  font-family: consolas, monospace, sans-serif; /* 'Avenir Next',  */
+  color: #333;
+
+  background-image: linear-gradient(#eee 0.5px, transparent 0.5px);
+  background-size: 100% 22px;
+}
+body {
+  font-size: 1.6rem;
+  line-height: 2.2rem;
+  
+  padding: 8.8rem 0 0 0;
+}
+textarea {
+  padding: 0.7rem 0 1.5rem 0;
+  margin: 0 auto;
+  padding-left: 10rem;
+  padding-right: 10rem;
+  max-width: 76rem; /* (35 * 1.6 + 10 * 2)rem */
+  box-sizing: border-box;
+  width: 100%;
+  height: 0;
+  outline-offset: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+h1, h2 {
+  margin-bottom: 2.2rem;
+}
+h1 {
+  font-size: 2.5rem;
+  line-height: 3.3rem;
+  /*margin-top: 1.1rem;*/
+
+  padding-top: 1.4rem;
+  margin-bottom: 1.9rem;
+}
+h2 {
+  font-size: 2.0rem;
+}
+
+blockquote {
+  position: relative;
+}
+blockquote::before {
+  content: '\200b';
+  position: absolute;
+  top: -7px;
+  bottom: -4px;
+  left: -16px;
+  border-right: 2px solid #ccc;
+}
+
+article>* {
+  transition: background ease-out .2s;
+}
+
+article>.highlight {
+  background: rgba(255, 255, 0, 0.2);
+  transition: background ease-out .1s;
+}
+
+h1>tt:first-child,
+h2>tt:first-child,
+h3>tt:first-child,
+h4>tt:first-child,
+h5>tt:first-child,
+h6>tt:first-child {
+  color: #333;
+  -webkit-text-fill-color: #B4B4B4;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+  font-weight: 400;
+}
+
+h1>tt:first-child::after, 
+h2>tt:first-child::after, 
+h3>tt:first-child::after, 
+h4>tt:first-child::after, 
+h5>tt:first-child::after, 
+h6>tt:first-child::after {
+  content: '\200b';
+  color: #333;
+  display: inline-block;
+  width: 0;
+}
+
+blockquote>tt:first-child {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  margin-left: -100px;
+  text-align: right;
+  font-weight: 400;
+}
+
+u {
+  color: #999;
+}
+u>span {
+  color: #333;
+}
+tt-u {
+  color: #B4B4B4;
+  text-decoration: underline;
+}
+tt-u>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+}
+s {
+  color: #888;
+}
+s>span {
+  color: #888;
+}
+tt-s {
+  color: #B4B4B4;
+  text-decoration: line-through;
+}
+tt-s>span {
+  color: #333;
+  -webkit-text-fill-color: transparent;
+}
+tt-i {
+  color: #B4B4B4;
+}
+tt-b {
+  color: #B4B4B4;
+}
+b {
+  font-weight: 600;
+}
+
+
+@media (max-width: 560px) {
+  body {
+    padding-top: 2.2rem;
+  }
+  textarea {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: normal;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 400;
+  src: local(consolas), url(/fish/fonts/consolas-italic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'consolas';
+  font-style: italic;
+  font-weight: 600;
+  src: local(consolas), url(/fish/fonts/consolas-bold-italic.ttf) format('truetype');
+}

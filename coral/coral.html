@@ -1,0 +1,30 @@
+<!doctype html>
+<title>Coral</title>
+
+<meta charset="utf-8">
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="coral.css">
+
+<main><textarea>Try editing this.</textarea></main>
+
+<script>
+  function setHeight(el, val) {
+    el.style.height = val + 'px';
+  }
+
+  function autoHeight(el) {
+    let h;
+    do {
+      h = el.scrollHeight;
+      setHeight(el, el.clientHeight - 22);
+    } while (h && h !== el.scrollHeight);
+    setHeight(el, el.scrollHeight);
+  }
+
+  let text = document.querySelector('textarea');
+  text.addEventListener('input', function(e) {
+    autoHeight(text);
+  });
+  
+  autoHeight(text);
+</script>
