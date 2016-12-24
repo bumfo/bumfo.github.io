@@ -6,49 +6,7 @@ function inRect(x, y, x0, y0, w, h) {
   return x0 <= x && x < x0 + w && y0 <= y && y < y0 + h
 }
 
-window.addEventListener('DOMContentLoaded', function(e) {
-  init()
-})
-
 let mouseX, mouseY
-
-window.addEventListener('mousemove', function(e) {
-  mouseX = e.pageX
-  mouseY = e.pageY
-})
-
-window.addEventListener('mousedown', function(e) {
-  gunFireOn()
-  gunFireOnce()
-  mouseX = e.pageX
-  mouseY = e.pageY
-})
-
-window.addEventListener('mouseup', function(e) {
-  gunFireOff()
-})
-
-window.addEventListener('touchmove', function(e) {
-  e.preventDefault()
-  mouseX = e.pageX
-  mouseY = e.pageY
-})
-
-window.addEventListener('touchstart', function(e) {
-  gunFireWait()
-  mouseX = e.pageX
-  mouseY = e.pageY
-})
-
-window.addEventListener('touchend', function(e) {
-  if (e.touches.length == 0) {
-    gunFireOff()
-  }
-})
-
-window.addEventListener('resize', function(e) {
-  onResize()
-})
 
 let canvas
 let ctx
@@ -409,3 +367,46 @@ function gunFire() {
     gunPendingBullets = 0
   gunHeat += gunHeatPerShot
 }
+
+
+window.addEventListener('DOMContentLoaded', function(e) {
+  init()
+})
+
+window.addEventListener('mousemove', function(e) {
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('mousedown', function(e) {
+  gunFireOn()
+  gunFireOnce()
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('mouseup', function(e) {
+  gunFireOff()
+})
+
+window.addEventListener('touchmove', function(e) {
+  e.preventDefault()
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('touchstart', function(e) {
+  gunFireWait()
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('touchend', function(e) {
+  if (e.touches.length == 0) {
+    gunFireOff()
+  }
+})
+
+window.addEventListener('resize', function(e) {
+  onResize()
+})
