@@ -3,10 +3,14 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
 <script>
-var xhr = new XMLHttpRequest
-xhr.open('get', 'ellipse.js?ver=1.0', 0)
-xhr.send()
-var source = xhr.responseText
-try { eval('let a = 0') } catch (e) { source = source.replace(/\blet\b/g, 'var') }
-eval(source)
+function load(uri) {
+  var xhr = new XMLHttpRequest
+  xhr.open('get', uri, 0)
+  xhr.send()
+  var source = xhr.responseText
+  try { eval('let a = 0') } catch (e) { source = source.replace(/\blet\b/g, 'var') }
+  return new Function('"use strict";\n' + source)()
+}
+
+load('ellipse.js?ver=1.0')
 </script>
