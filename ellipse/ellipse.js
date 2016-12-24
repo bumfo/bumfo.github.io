@@ -19,27 +19,64 @@ window.addEventListener('mousemove', function(e) {
 
 window.addEventListener('mousedown', function(e) {
   gunFireOn()
+  mouseX = e.pageX
+  mouseY = e.pageY
 })
 
 window.addEventListener('mouseup', function(e) {
   gunFireOff()
 })
 
+window.addEventListener('touchmove', function(e) {
+  e.preventDefault()
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('touchstart', function(e) {
+  gunFireOn()
+  mouseX = e.pageX
+  mouseY = e.pageY
+})
+
+window.addEventListener('touchend', function(e) {
+  if (e.touches.length == 0) {
+    gunFireOff()
+  }
+})
+
+window.addEventListener('resize', function(e) {
+  onResize()
+})
+
+let canvas
 let ctx
+let canvasWidth = window.innerWidth
+let canvasHeight = window.innerHeight
 
 function init() {
-  let canvas = document.createElement('canvas')
+  canvas = document.createElement('canvas')
   document.body.appendChild(canvas)
   document.body.style.margin = 0
   document.body.style.overflow = 'hidden'
 
   document.body.style.cursor = 'none'
 
-  canvas.width = 1440 * 2
-  canvas.height = 900 * 2
+  initCanvas()
 
-  canvas.style.width = 1440 + 'px'
-  canvas.style.height = 900 + 'px'
+  window.requestAnimationFrame(function frame() {
+    onFrame()
+    onTick()
+    window.requestAnimationFrame(frame)
+  })
+}
+
+function initCanvas() {
+  canvas.width = canvasWidth * 2
+  canvas.height = canvasHeight * 2
+
+  canvas.style.width = canvasWidth + 'px'
+  canvas.style.height = canvasHeight + 'px'
 
   ctx = canvas.getContext('2d')
 
@@ -47,12 +84,6 @@ function init() {
   ctx.scale(2, 2)
   ctx.fillStyle = '#ACC9E7'
   ctx.strokeStyle = '#759DC1'
-
-  window.requestAnimationFrame(function frame() {
-    onFrame()
-    onTick()
-    window.requestAnimationFrame(frame)
-  })
 }
 
 let bulletsPerClip = 3
@@ -62,11 +93,11 @@ let speedModifier = 1
 let bulletSpeed = 14
 
 let planes = [
-  {x: 720, y: 450, vx: 0, vy: 0, speed: 1},
-  {x: 328, y: 450, vx: 0, vy: 0, speed: 2, bug: 1},
+  {x: 720 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 1},
+  {x: 328 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 2, bug: 1},
 ]
 
-let gun = {x: 720, y: 855+12.5, angle: 0}
+let gun = {x: 720 / 1440 * canvasWidth, y: (855 + 12.5) - 900 + canvasHeight, angle: 0}
 
 let bullets = [
 ]
@@ -76,7 +107,7 @@ let pendingBullets = 0
 let gunHeat = 0
 
 function onFrame() {
-  ctx.clearRect(0, 0, 1440, 900)
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
   planes.forEach(function(plane) {
     drawPlane(plane)
   })
@@ -91,6 +122,16 @@ function onTick() {
   updatePlanes()
   updateBullets()
   updateGun()
+}
+
+function onResize() {
+  canvasWidth = window.innerWidth
+  canvasHeight = window.innerHeight
+
+  gun.x = 720 / 1440 * canvasWidth
+  gun.y = (855 + 12.5) - 900 + canvasHeight
+
+  initCanvas()
 }
 
 function detectCollision() {
@@ -125,18 +166,18 @@ function detectCollision() {
 
 
 function updatePlanes() {
-  if (Math.random() < 1/1000) {
+  if (Math.random() < 1 / 1000) {
     speedModifier *= 1.01
     heatPerShot /= 1.01
   }
 
   if (Math.random() < newPlaneThreshold) {
-    planes.push({x: -100, y: Math.random() * (900 - 300 - 100) + 100, speed: (Math.random() * 7 + 7) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
+    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * 7 + 7) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
   }
 
   let i = 0
   while (i < planes.length) {
-    if (!inRect(planes[i].x, planes[i].y, -100, -100, 1440 + 200, 900 + 200)) {
+    if (!inRect(planes[i].x, planes[i].y, -100, -100, canvasWidth + 200, canvasHeight + 200)) {
       planes.splice(i, 1)
     } else {
       if (planes[i].dropping) {
@@ -170,7 +211,7 @@ function updateBullets() {
   let i = 0
   while (i < bullets.length) {
     let bullet = bullets[i]
-    if (!inRect(bullet.x, bullet.y, -100, -100, 1440 + 200, 900 + 200) || bullet.size > 200) {
+    if (!inRect(bullet.x, bullet.y, -100, -100, canvasWidth + 200, canvasHeight + 200) || bullet.size > 200) {
       bullets.splice(i, 1)
     } else {
       if (bullet.exploding) {
@@ -288,8 +329,8 @@ function drawGun(gun) {
   h = 100
   ctx.lineWidth = 2.5 / scale
   ctx.fillStyle = '#ACC9E7'
-  ctx.fillRect(-w/2, -h/2 + 50, w, h)
-  ctx.strokeRect(-w/2, -h/2 + 50, w, h)
+  ctx.fillRect(-w / 2, -h / 2 + 50, w, h)
+  ctx.strokeRect(-w / 2, -h / 2 + 50, w, h)
 
   ctx.rotate(angle)
 
@@ -298,12 +339,12 @@ function drawGun(gun) {
   
   w = 20
   h = 60
-  ctx.fillRect(-w/2 - 12, -h/2 - 30, w, h)
-  ctx.fillRect(-w/2 + 12, -h/2 - 30, w, h)
+  ctx.fillRect(-w / 2 - 12, -h / 2 - 30, w, h)
+  ctx.fillRect(-w / 2 + 12, -h / 2 - 30, w, h)
 
   w = 20
   h = 150
-  ctx.fillRect(-w/2, -h/2 - 90, w, h)
+  ctx.fillRect(-w / 2, -h / 2 - 90, w, h)
 
   ctx.restore()
 }
