@@ -91,6 +91,8 @@ let heatPerShot = 60 / 4
 let newPlaneThreshold = 1 / 30
 let speedModifier = 1
 let bulletSpeed = 14
+let maxPlaneSpeed = 14
+let minPlaneSpeed = 7
 
 let planes = [
   {x: 720 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 1},
@@ -172,7 +174,7 @@ function updatePlanes() {
   }
 
   if (Math.random() < newPlaneThreshold) {
-    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * 7 + 7) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
+    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (maxPlaneSpeed - minPlaneSpeed) + minPlaneSpeed) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
   }
 
   let i = 0
@@ -260,10 +262,10 @@ function drawPlane(plane) {
   ctx.scale(scale, scale)
   ctx.rotate(angle)
 
-  ctx.lineWidth = 2.5 / scale
+  ctx.lineWidth = 10 // 2.5 / scale
   ctx.fillStyle = '#ACC9E7'
   ctx.beginPath()
-  ctx.ellipse(0, 0, 185, 37, 0, 0, Math.PI * 2, 0)
+  ctx.ellipse(0, 0, 185, 37, 0, 0, Math.PI * 2 * 0.9999, 0) // Safari has bugs with full ellipse (without any rotation), which renders as half lineWidth
   ctx.fill()
   ctx.stroke()
 
