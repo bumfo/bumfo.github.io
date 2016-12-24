@@ -19,6 +19,7 @@ window.addEventListener('mousemove', function(e) {
 
 window.addEventListener('mousedown', function(e) {
   gunFireOn()
+  gunFireOnce()
   mouseX = e.pageX
   mouseY = e.pageY
 })
@@ -34,7 +35,7 @@ window.addEventListener('touchmove', function(e) {
 })
 
 window.addEventListener('touchstart', function(e) {
-  gunFireOn()
+  gunFireWait()
   mouseX = e.pageX
   mouseY = e.pageY
 })
@@ -86,13 +87,15 @@ function initCanvas() {
   ctx.strokeStyle = '#759DC1'
 }
 
-let bulletsPerClip = 3
-let heatPerShot = 60 / 4
-let newPlaneThreshold = 1 / 30
 let speedModifier = 1
+
+let planeCreateThreshold = 1 / 30
+let planeMaxSpeed = 14
+let planeMinSpeed = 7
+let gunClipSize = 3
+let gunHeatPerShot = 60 / 4
+let gunMaxTurnRate = Math.PI / 10
 let bulletSpeed = 14
-let maxPlaneSpeed = 14
-let minPlaneSpeed = 7
 
 let planes = [
   {x: 720 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 1},
@@ -104,8 +107,10 @@ let gun = {x: 720 / 1440 * canvasWidth, y: (855 + 12.5) - 900 + canvasHeight, an
 let bullets = [
 ]
 
-let isGunFiring = 0
-let pendingBullets = 0
+let gunIsFiring = 0
+let gunIsWaiting = 0
+let gunIsWaitingOnce = 0
+let gunPendingBullets = 0
 let gunHeat = 0
 
 function onFrame() {
@@ -165,16 +170,14 @@ function detectCollision() {
   }
 }
 
-
-
 function updatePlanes() {
   if (Math.random() < 1 / 1000) {
     speedModifier *= 1.01
-    heatPerShot /= 1.01
+    gunHeatPerShot /= 1.01
   }
 
-  if (Math.random() < newPlaneThreshold) {
-    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (maxPlaneSpeed - minPlaneSpeed) + minPlaneSpeed) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
+  if (Math.random() < planeCreateThreshold) {
+    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (planeMaxSpeed - planeMinSpeed) + planeMinSpeed) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
   }
 
   let i = 0
@@ -207,7 +210,7 @@ function updatePlanes() {
 }
 
 function updateBullets() {
-  if (isGunFiring || pendingBullets)
+  if (gunIsFiring || gunPendingBullets)
     gunFire()
 
   let i = 0
@@ -235,18 +238,35 @@ function updateGun() {
     --gunHeat
 
   let phi = Math.atan2(mouseY - gun.y, mouseX - gun.x)
-  gun.angle = phi - (-Math.PI / 2)
-  if (gun.angle > Math.PI)
-    gun.angle -= Math.PI * 2
-  if (gun.angle < -Math.PI)
-    gun.angle += Math.PI * 2
-  if (gun.angle > Math.PI / 2)
-    gun.angle = Math.PI / 2
-  if (gun.angle < -Math.PI / 2)
-    gun.angle = -Math.PI / 2
+  let angle = phi - (-Math.PI / 2)
+  if (!angle)
+    angle = 0
 
-  if (!gun.angle)
-    gun.angle = 0
+  if (angle > Math.PI)
+    angle -= Math.PI * 2
+  if (angle < -Math.PI)
+    angle += Math.PI * 2
+  if (angle > Math.PI / 2)
+    angle = Math.PI / 2
+  if (angle < -Math.PI / 2)
+    angle = -Math.PI / 2
+
+  let turn = angle - gun.angle
+  
+  gun.angle = Math.sign(turn) * Math.min(Math.abs(turn), gunMaxTurnRate) + gun.angle
+
+  if (gunIsWaiting || gunIsWaitingOnce) {
+    if (Math.abs(turn) < 1e-3) {
+      if (gunIsWaiting) {
+        gunFireOn()
+        gunIsWaiting = 0
+      }
+      if (gunIsWaitingOnce > 0) {
+        gunFireOnce()
+        --gunIsWaitingOnce
+      }
+    }
+  }
 }
 
 function drawPlane(plane) {
@@ -351,22 +371,31 @@ function drawGun(gun) {
   ctx.restore()
 }
 
+function gunFireOnce() {
+  ++gunPendingBullets
+}
+
+function gunFireWait() {
+  gunIsWaiting = 1
+  ++gunIsWaitingOnce
+}
+
 function gunFireOn() {
-  isGunFiring = 1
-  ++pendingBullets
+  gunIsFiring = 1
 }
 
 function gunFireOff() {
-  isGunFiring = 0
+  gunIsWaiting = 0
+  gunIsFiring = 0
 }
 
 function gunFire() {
-  if (!pendingBullets) {
+  if (!gunPendingBullets) {
     if (gunHeat > 0)
       return
   } else {
-    if (gunHeat > heatPerShot * (bulletsPerClip - 1)) {
-      pendingBullets = 0
+    if (gunHeat > gunHeatPerShot * (gunClipSize - 1)) {
+      gunPendingBullets = 0
       return
     }
   }
@@ -375,8 +404,8 @@ function gunFire() {
   let angle = gun.angle + (-Math.PI / 2)
   let offset = 78
   bullets.push({x: gun.x + offset * Math.cos(angle), y: gun.y + offset * Math.sin(angle), vx: speed * Math.cos(angle), vy: speed * Math.sin(angle), size: 20})
-  --pendingBullets
-  if (pendingBullets < 0)
-    pendingBullets = 0
-  gunHeat += heatPerShot
+  --gunPendingBullets
+  if (gunPendingBullets < 0)
+    gunPendingBullets = 0
+  gunHeat += gunHeatPerShot
 }
