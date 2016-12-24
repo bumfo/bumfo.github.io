@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <title>Ellipse</title>
-<meta name=viewport content="width=device-width, initial-scale=1.0">
+<meta name=viewport content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
-<script src="ellipse.js"></script>
+<script>
+var xhr = new XMLHttpRequest
+xhr.open('get', 'ellipse.js', 0)
+xhr.send()
+var source = xhr.responseText
+try { eval('let a = 0') } catch (e) { source = source.replace(/\blet\b/g, 'var') }
+eval(source)
+</script>
