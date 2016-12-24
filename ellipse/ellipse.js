@@ -8,6 +8,7 @@ function inRect(x, y, x0, y0, w, h) {
 
 window.addEventListener('DOMContentLoaded', function(e) {
   init()
+  onResize()
 })
 
 var mouseX, mouseY
@@ -62,8 +63,6 @@ function init() {
   document.body.style.overflow = 'hidden'
 
   document.body.style.cursor = 'none'
-
-  initCanvas()
 
   window.requestAnimationFrame(function frame() {
     onFrame()
