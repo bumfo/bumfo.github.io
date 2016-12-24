@@ -10,7 +10,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   init()
 })
 
-let mouseX, mouseY
+var mouseX, mouseY
 
 window.addEventListener('mousemove', function(e) {
   mouseX = e.pageX
@@ -50,10 +50,10 @@ window.addEventListener('resize', function(e) {
   onResize()
 })
 
-let canvas
-let ctx
-let canvasWidth = window.innerWidth
-let canvasHeight = window.innerHeight
+var canvas
+var ctx
+var canvasWidth = window.innerWidth
+var canvasHeight = window.innerHeight
 
 function init() {
   canvas = document.createElement('canvas')
@@ -87,31 +87,31 @@ function initCanvas() {
   ctx.strokeStyle = '#759DC1'
 }
 
-let speedModifier = 1
+var speedModifier = 1
 
-let planeCreateThreshold = 1 / 30
-let planeMaxSpeed = 14
-let planeMinSpeed = 7
-let gunClipSize = 3
-let gunHeatPerShot = 60 / 4
-let gunMaxTurnRate = Math.PI / 10
-let bulletSpeed = 14
+var planeCreateThreshold = 1 / 30
+var planeMaxSpeed = 14
+var planeMinSpeed = 7
+var gunClipSize = 3
+var gunHeatPerShot = 60 / 4
+var gunMaxTurnRate = Math.PI / 10
+var bulletSpeed = 14
 
-let planes = [
+var planes = [
   {x: 720 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 1},
   {x: 328 / 1440 * canvasWidth, y: 450 / 900 * canvasHeight, vx: 0, vy: 0, speed: 2, bug: 1},
 ]
 
-let gun = {x: 720 / 1440 * canvasWidth, y: (855 + 12.5) - 900 + canvasHeight, angle: 0}
+var gun = {x: 720 / 1440 * canvasWidth, y: (855 + 12.5) - 900 + canvasHeight, angle: 0}
 
-let bullets = [
+var bullets = [
 ]
 
-let gunIsFiring = 0
-let gunIsWaiting = 0
-let gunIsWaitingOnce = 0
-let gunPendingBullets = 0
-let gunHeat = 0
+var gunIsFiring = 0
+var gunIsWaiting = 0
+var gunIsWaitingOnce = 0
+var gunPendingBullets = 0
+var gunHeat = 0
 
 function onFrame() {
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
@@ -142,20 +142,20 @@ function onResize() {
 }
 
 function detectCollision() {
-  let i = 0
+  var i = 0
 
-  let planeW = 90
-  let planeH = 20
+  var planeW = 90
+  var planeH = 20
 
   while (i < bullets.length) {
-    let bullet = bullets[i]
+    var bullet = bullets[i]
     if (bullet.exploding) {
       ++i
       continue
     }
-    let j = 0
+    var j = 0
     while (j < planes.length){
-      let plane = planes[j]
+      var plane = planes[j]
       if (plane.dropping) {
         ++j
         continue
@@ -180,7 +180,7 @@ function updatePlanes() {
     planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (planeMaxSpeed - planeMinSpeed) + planeMinSpeed) * speedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
   }
 
-  let i = 0
+  var i = 0
   while (i < planes.length) {
     if (!inRect(planes[i].x, planes[i].y, -100, -100, canvasWidth + 200, canvasHeight + 200)) {
       planes.splice(i, 1)
@@ -190,8 +190,8 @@ function updatePlanes() {
         planes[i].vy += 0.5
         planes[i].angle = Math.atan2(planes[i].vy, planes[i].vx) / 3
       } else if (planes[i].bug) {
-        let angle = Math.atan2(planes[i].vy, planes[i].vx - planes[i].speed)
-        let length = Math.min(planes[i].speed / 10, 1) // Math.sqrt(sq(planes[i].vy) + sq(planes[i].vx))
+        var angle = Math.atan2(planes[i].vy, planes[i].vx - planes[i].speed)
+        var length = Math.min(planes[i].speed / 10, 1) // Math.sqrt(sq(planes[i].vy) + sq(planes[i].vx))
         angle += Math.PI / 100
         planes[i].vx = planes[i].speed + length * Math.cos(angle)
         planes[i].vy = length * Math.sin(angle)
@@ -213,9 +213,9 @@ function updateBullets() {
   if (gunIsFiring || gunPendingBullets)
     gunFire()
 
-  let i = 0
+  var i = 0
   while (i < bullets.length) {
-    let bullet = bullets[i]
+    var bullet = bullets[i]
     if (!inRect(bullet.x, bullet.y, -100, -100, canvasWidth + 200, canvasHeight + 200) || bullet.size > 200) {
       bullets.splice(i, 1)
     } else {
@@ -237,8 +237,8 @@ function updateGun() {
   if (gunHeat > 0)
     --gunHeat
 
-  let phi = Math.atan2(mouseY - gun.y, mouseX - gun.x)
-  let angle = phi - (-Math.PI / 2)
+  var phi = Math.atan2(mouseY - gun.y, mouseX - gun.x)
+  var angle = phi - (-Math.PI / 2)
   if (!angle)
     angle = 0
 
@@ -251,7 +251,7 @@ function updateGun() {
   if (angle < -Math.PI / 2)
     angle = -Math.PI / 2
 
-  let turn = angle - gun.angle
+  var turn = angle - gun.angle
   
   gun.angle = Math.sign(turn) * Math.min(Math.abs(turn), gunMaxTurnRate) + gun.angle
 
@@ -270,11 +270,11 @@ function updateGun() {
 }
 
 function drawPlane(plane) {
-  let x = plane.x
-  let y = plane.y
-  let angle = plane.angle
+  var x = plane.x
+  var y = plane.y
+  var angle = plane.angle
 
-  let scale = 0.25
+  var scale = 0.25
 
   ctx.save()
 
@@ -312,11 +312,11 @@ function drawPlane(plane) {
 }
 
 function drawBullet(bullet) {
-  let x = bullet.x
-  let y = bullet.y
-  let size = bullet.size
+  var x = bullet.x
+  var y = bullet.y
+  var size = bullet.size
 
-  let scale = 0.2
+  var scale = 0.2
 
   ctx.save()
 
@@ -335,12 +335,12 @@ function drawBullet(bullet) {
 }
 
 function drawGun(gun) {
-  let x = gun.x
-  let y = gun.y
-  let angle = gun.angle
+  var x = gun.x
+  var y = gun.y
+  var angle = gun.angle
 
-  let w, h
-  let scale = 0.5
+  var w, h
+  var scale = 0.5
 
   ctx.save()
 
@@ -400,9 +400,9 @@ function gunFire() {
     }
   }
 
-  let speed = bulletSpeed
-  let angle = gun.angle + (-Math.PI / 2)
-  let offset = 78
+  var speed = bulletSpeed
+  var angle = gun.angle + (-Math.PI / 2)
+  var offset = 78
   bullets.push({x: gun.x + offset * Math.cos(angle), y: gun.y + offset * Math.sin(angle), vx: speed * Math.cos(angle), vy: speed * Math.sin(angle), size: 20})
   --gunPendingBullets
   if (gunPendingBullets < 0)
