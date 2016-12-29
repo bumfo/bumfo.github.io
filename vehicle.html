@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<title>Vehicle</title>
+
+<style>
+	html, body {
+		overflow: hidden;
+		margin: 0;
+		height: 100%;
+		background: #333;
+	}
+</style>
+
+<canvas></canvas>
+
+<script>
+'use strict';
+
+function extendWith(o, a, keyObj) {
+	var keys = keyObj?Object.keys(keyObj):Object.keys(a);
+
+	for (var i = 0, n = keys.length; i < n; ++i) {
+		var key = keys[i];
+
+		if (a[key] !== void 0)
+			o[key] = a[key];
+	}
+}
+
+function descriptor(o) {
+	var keys = Object.keys(o), b = {};
+
+	for (var i = 0, n = keys.length, key; i < n; ++i) {
+		key = keys[i];
+
+		b[key] = {value: o[key], writable: true};
+	}
+
+	return b;
+}
+
+function extend(o) { // o, a...
+	var a;
+
+	for (var j = 1, m = arguments.length; j < m; ++j) {
+		a = arguments[j];
+
+		var keys = Object.keys(a);
+
+		for (var i = 0, n = keys.length, key; i < n; ++i) {
+			key = keys[i];
+			o[key] = a[key];
+		}
+	}
+
+	return o;
+}
+
+function inherit(Class, Super) {
+	var Klass = nameFn(function() {
+		Super.apply(this, arguments);
+		return Class.apply(this, arguments);
+	});
+
+	function nameFn(fn) {
+		// return fn;
+		return new Function("return function(fn){return function "+(Class.name.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/)||[""])[0]+"(){return fn.apply(this, arguments)}}")()(fn);
+	}
+
+	Klass.super = Super;
+
+	Klass.prototype = extend(Object.create(Super.prototype, descriptor({
+		constructor: Class
+	})), Class.prototype);
+
+	return Klass;
+}
+</script>
+<script src="s/vehicle.js"></script>
+<script>
+'use strict';
+
+var FPS = 0;
+
+var Field = function(width, height) {
+	var config = {fieldWidth: width, fieldHeight: height};
+
+	var robotsCount = Math.random()*3;
+
+	Projectile.prototype.delete = function() {
+		var index = bullets.indexOf(this);
+
+		if (index !== -1) {
+			bullets.splice(index, 1);
+		}
+	};
+
+	Gas.prototype.delete = function() {
+		var index = particles.indexOf(this);
+
+		if (index !== -1) {
+			particles.splice(index, 1);
+		}
+	};
+
+	Missile.prototype.gas = function(x) {
+		if (particles.length > 1000)
+			// particles.splice(Math.floor(Math.random()*particles.length), 1);
+		// if (FPS > 0 && FPS < 60)
+			particles.shift();
+		particles.push(x);
+	};
+
+	var Robot = inherit(function Robot() { this.gunHeat = 33; }, Vehicle);
+
+	Robot.prototype.update = function() {
+		Robot.super.prototype.update.call(this);
+
+		var co = [0,0], target = this.target;
+
+		co[0] += target.pos[0];
+		co[1] += target.pos[1];
+
+		co[0] -= this.pos[0];
+		co[1] -= this.pos[1];
+
+		var distance = Math.sqrt(Math.pow(co[1], 2) + Math.pow(co[0], 2));
+
+		var phi = Math.atan2(co[1], co[0]);
+
+		var WeaponObj = Math.random() > 0 ? Missile : Bullet;
+
+		var initialVelocity = [0,0];
+
+		initialVelocity[0] = (1+Math.random()*2) * 0 * Math.cos(phi) + 5*this.velocity[0];
+		initialVelocity[1] = (1+Math.random()*2) * 0 * Math.sin(phi) + 5*this.velocity[1];
+
+		if (this.gunHeat <= 0 && bullets.length < robotsCount) {
+			var bullet = new WeaponObj({
+				initialPos: this.pos, 
+				initialVelocity: initialVelocity, 
+				heading: phi,
+
+				fieldWidth: this.fieldWidth,
+				fieldHeight: this.fieldHeight,
+
+				target: target
+			});
+
+			bullets.push(bullet);
+
+			this.gunHeat = 30;//3;
+		} else {
+			this.gunHeat -= 0.05;// * Math.random();
+
+			if (this.gunHeat < 30 && bullets.length < robotsCount)
+				this.gunHeat = 0;
+		}
+	}
+
+	var target = new Vehicle(config);
+
+	target.gunHeat = 30;
+
+	// target.fraction = 0.99;
+	// target.acceleration = 0.1;
+
+	target.fraction = 0.96;
+	target.acceleration = 0.4;
+
+	var mousePos = [width*Math.random(),height*Math.random()];
+	var firePos = [width*Math.random(),height*Math.random()];
+
+	target.update = function() {
+		Vehicle.prototype.update.call(this);
+
+		var co = [0,0];
+
+		co[0] = mousePos[0] - this.pos[0];
+		co[1] = mousePos[1] - this.pos[1];
+
+		var distance = Math.sqrt(Math.pow(co[0],2)+Math.pow(co[1],2));
+
+		this.heading = Math.atan2(co[1], co[0]);
+
+		// this.acceleration = Math.min(0.4, Math.pow(distance,2)/120000);
+
+		this.acceleration = Math.min(0.4, Math.sqrt(distance)/12);
+
+		var WeaponObj = Math.random() > 0 ? Missile : Bullet;
+
+		var initialVelocity = [0,0];
+
+		initialVelocity[0] = this.velocity[0] * 1;
+		initialVelocity[1] = this.velocity[1] * 1;
+
+		if (this.gunHeat <= 0) {
+			var enemy;
+
+			var self = this;
+
+			bullets.some(function(x) {
+				// console.log(x.target);
+				return x.target === self ? (enemy = x, true) : false;
+			});
+
+			var bullet = new WeaponObj({
+				initialPos: this.pos, 
+				initialVelocity: initialVelocity, 
+				heading: Math.atan2(firePos[0] - this.pos[0], firePos[1] - this.pos[1]),
+
+				fieldWidth: this.fieldWidth,
+				fieldHeight: this.fieldHeight,
+
+				target: enemy,
+
+				fraction: 0.97,
+				aMax: 0.4
+			});
+
+			bullets.push(bullet);
+
+			this.gunHeat = 1;
+		} else {
+			// this.gunHeat -= 0.05;// * Math.random();
+		}
+	}
+
+	window.addEventListener("touchstart", function(e) {
+		e.preventDefault();
+
+		mousePos[0] = e.pageX;
+		mousePos[1] = e.pageY;
+	});
+
+	window.addEventListener("touchmove", function(e) {
+		e.preventDefault();
+
+		mousePos[0] = e.pageX;
+		mousePos[1] = e.pageY;
+	});
+
+	window.addEventListener("mousemove", function(e) {
+		mousePos[0] = e.pageX;
+		mousePos[1] = e.pageY;
+	});
+
+	window.addEventListener("click", function(e) {
+		firePos[0] = e.pageX;
+		firePos[1] = e.pageY;
+	});
+
+	var robots = [];
+
+	for (var i = 0, n = robotsCount; i < n; ++i) {
+		var robot = new Robot(config);
+		robot.heading = Math.PI*2*Math.random();
+		robot.target = target;
+
+		robots[i] = robot;
+	}
+
+	var vehicles = [target].concat(robots);
+
+	var bullets = [];
+
+	var particles = [];
+
+	var objects = [vehicles, bullets, particles];
+
+	requestAnimationFrame(function(t0) {
+		var t1 = t0;
+		var tFPS = t0, cFPS = 0;
+
+		Draw = Draw(document.querySelector('canvas'), width, height);
+
+		requestAnimationFrame(function frame(t2) {
+			var dt = t2 - t1,
+				t = t2 - t0;
+
+			++cFPS;
+
+			if (t2 - tFPS > 1000) {
+				FPS = cFPS;
+				cFPS = 0;
+				tFPS = t2;
+			}
+
+			Draw.clear();
+
+			Draw.begin();
+			objects.forEach(function(y) {
+				y.forEach(function(x) {
+					x.update();
+				});
+			});
+			objects.forEach(function(y) {
+				for (var i = 0, n = y.length; i < n; ++i) {
+					y[i].draw();
+				}
+			});
+			Draw.end();
+
+			Draw.fps(FPS);
+
+			requestAnimationFrame(frame);
+
+			t1 = t2;
+		});
+	});
+}
+
+new Field(document.body.offsetWidth, document.body.offsetHeight);
+
+Draw = function(c, width, height) {
+	var ctx = c.getContext("2d");
+
+	var dpr = 2;//0.5;//window.devicePixelRatio || 1;
+
+	c.width = width * dpr;
+	c.height = height * dpr;
+	c.style.width = width + "px";
+	c.style.height = height + "px";
+
+	ctx.scale(dpr, dpr);
+
+	var backColor = "rgba(0, 0, 0, "+1/4+")";
+
+	var fillColor = "rgba(255, 255, 255, 0.5)";
+	var strokeColor = "rgba(255, 255, 255, 1)";
+
+	ctx.fillStyle = fillColor;
+	ctx.strokeStyle = strokeColor;
+
+	function setColor(opacity, color) {
+		var r = 255, g = 255, b = 255;
+
+		if (color === 'red') {
+			g = 0;
+			b = 0;
+		}
+
+		if (opacity >= 0 && opacity <= 1) {
+			ctx.strokeStyle = "rgba("+r+", "+g+", "+b+", "+opacity+")";
+			ctx.fillStyle = "rgba("+r+", "+g+", "+b+", "+opacity/10+")";
+		}
+	}
+
+	function setColorReverse(opacity) {
+		if (opacity >= 0 && opacity <= 1) {
+			ctx.strokeStyle = "rgba(0, 0, 0, "+opacity+")";
+			ctx.fillStyle = "rgba(0, 0, 0, "+opacity/10+")";
+		}
+	}
+
+	return {
+		width: width, height: height,
+		clear: function() {
+			ctx.clearRect(0,0,width,height);
+
+			// ctx.fillStyle = backColor;//1/32 //4
+			// ctx.fillRect(0,0,width,height);
+			// ctx.fillStyle = fillColor;
+		},
+		begin: function() {
+			ctx.font = "12px avenir next";
+		},
+		end: function() {
+			ctx.font = "48px avenir next";
+		},
+		body: function(x, y, heading, size, text, opacity, filled, color) {
+			
+
+			ctx.beginPath();
+			var rabbet = filled ? 0 : 15/180 * Math.PI;
+			ctx.arc(x, y, size, heading + rabbet, heading + 2*Math.PI - rabbet, false);
+
+			ctx.fillText(text, 6, y+6);//x+size+6, y+6);
+
+			setColor(opacity, color);
+			
+			ctx.stroke();
+
+			if (filled)
+				ctx.fill();
+
+			if (opacity !== void 0) {
+				ctx.strokeStyle = strokeColor;
+				ctx.fillStyle = fillColor;
+			}
+		},
+		gas: function(x, y, heading, size, opacity, color) {
+			setColor(opacity, color);
+
+			ctx.beginPath();
+			var rabbet = 0;
+			ctx.arc(x, y, size, heading + rabbet, heading + 2*Math.PI - rabbet, false);
+			
+			ctx.stroke();
+
+			ctx.fill();
+
+			if (opacity !== void 0) {
+				ctx.strokeStyle = strokeColor;
+				ctx.fillStyle = fillColor;
+			}
+		},
+		fps: function(fps) {
+			ctx.fillText(fps, 15, 48 + 15);
+		}
+	};
+};
+
+</script>
