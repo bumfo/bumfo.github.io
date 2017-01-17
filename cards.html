@@ -3,10 +3,13 @@
 
 <style>
   body {
-    margin: 100px;
-    padding: 4px;
-    width: 408px;
+    margin: 0;
+    padding: 0;
     background: #eee;
+  }
+  section {
+    width: 408px;
+    padding: 104px;
   }
   section::after {
     content: '\200b';
@@ -18,18 +21,21 @@
     float: left;
     width: 400px;
     height: 100px;
-    margin: 4px;
+    margin: 8px;
     background: #fff;
     border-radius: 2px;
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 0 3px 0 rgba(0,0,0,0.1);
 
     opacity: 0;
     transform: translate3d(0, 16px, 0);
-    will-change: opacity, transform;
+    will-change: opacity;
 
-    transition: all cubic-bezier(0.4, 0.0, 0.2, 1) 375ms;
-    transition-property: opacity, transform;
+    transition: opacity cubic-bezier(0.4, 0.0, 0.2, 1) 375ms, transform cubic-bezier(0.4, 0.0, 0.2, 1) 375ms, box-shadow cubic-bezier(0.4, 0.0, 0.2, 1) 375ms;
   }
+  div:hover {
+    box-shadow: 0 3px 6px 0 rgba(0,0,0,0.3), 0 0 10px 0 rgba(0,0,0,0.1);
+  }
+
   section:hover div {
     opacity: 1;
     transform: translate3d(0, 0, 0);
