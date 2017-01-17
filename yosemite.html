@@ -3,6 +3,9 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
 <style>
+  .style {
+    transition: box-shadow cubic-bezier(0.4, 0.0, 0.2, 1) 195ms;
+  }
   button {
     height: 32px;
     line-height: 32px;
@@ -13,13 +16,12 @@
   button.style {
     height: 30px;
     line-height: 30px;
-    border-radius: 0px;
     border: 0px solid #AFAFAF;
+    border-radius: 0px;
     margin: 1px;
     color: #000;
     box-shadow: 0 0 0 1px #AFAFAF;
     background: linear-gradient(180deg, #E3E3E3, #F7F7F7);
-
     outline: none;
   }
   button.style:active {
@@ -35,21 +37,24 @@
     line-height: 32px;
     padding: 0 8px;
     font: 13px 'Roboto', '--apple-system', 'BlinkMacSystemFont', sans-serif;
-    border: 0px solid #BFBFBF;
+  }
+
+  input.style {
     height: 30px;
     line-height: 30px;
-    margin: 1px;
+    border: 0px solid #BFBFBF;
     border-radius: 0px;
+    margin: 1px;
     box-shadow: 0 0 0 0.5px #FFF, 0 0 0 1px #BFBFBF;
     outline: none;
   }
-  input:focus {
+  input.style:focus {
     box-shadow: 0 0 0 0.5px #FFF, 0 0 0 1px rgba(59, 153, 252, .7), 0 0 0 1.5px rgba(59, 153, 252, .5), 0 0 0 1px rgba(59, 153, 252, .5);
   }
 </style>
 
-<input placeholder="username">
-<input placeholder="password" type="password">
+<input class="style" placeholder="username">
+<input class="style" placeholder="password" type="password">
 <button class="style">LOGIN</button>
 <!-- <button class="style">RESET</button> -->
 
@@ -59,7 +64,8 @@
       document.body.classList.add('keyboard')
     })
     document.addEventListener('mousedown', function(e) {
-      document.body.classList.remove('keyboard')
+      if (e.target !== document.activeElement)
+        document.body.classList.remove('keyboard')
     })
   })
 </script>
