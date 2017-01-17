@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<title>Yosemite</title>
+<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<style>
+  button {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 16px;
+    font: 13px 'Roboto', '--apple-system', 'BlinkMacSystemFont', sans-serif;
+  }
+
+  button.style {
+    height: 30px;
+    line-height: 30px;
+    border-radius: 0px;
+    border: 0px solid #AFAFAF;
+    margin: 1px;
+    color: #000;
+    box-shadow: 0 0 0 1px #AFAFAF;
+    background: linear-gradient(180deg, #E3E3E3, #F7F7F7);
+
+    outline: none;
+  }
+  button.style:active {
+    background: linear-gradient(180deg, #B0B0B0, #C5C5C5);
+  }
+  .keyboard button.style:focus {
+    border-radius: 0.01px;
+    box-shadow: 0 0 0 0.5px #AFAFAF, 0 0 0 1px #75A4D5, 0 0 0 2px #9DCCFD;
+  }
+
+  input {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 8px;
+    font: 13px 'Roboto', '--apple-system', 'BlinkMacSystemFont', sans-serif;
+    border: 0px solid #BFBFBF;
+    height: 30px;
+    line-height: 30px;
+    margin: 1px;
+    border-radius: 0px;
+    box-shadow: 0 0 0 0.5px #FFF, 0 0 0 1px #BFBFBF;
+    outline: none;
+  }
+  input:focus {
+    box-shadow: 0 0 0 0.5px #FFF, 0 0 0 1px rgba(59, 153, 252, .7), 0 0 0 1.5px rgba(59, 153, 252, .5), 0 0 0 1px rgba(59, 153, 252, .5);
+  }
+</style>
+
+<input placeholder="username">
+<input placeholder="password" type="password">
+<button class="style">LOGIN</button>
+<!-- <button class="style">RESET</button> -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(e) {
+    document.addEventListener('keydown', function(e) {
+      document.body.classList.add('keyboard')
+    })
+    document.addEventListener('mousedown', function(e) {
+      document.body.classList.remove('keyboard')
+    })
+  })
+</script>
