@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<title>Material Cards</title>
+
+<style>
+  body {
+    margin: 100px;
+    padding: 4px;
+    width: 408px;
+    background: #eee;
+  }
+  section::after {
+    content: '\200b';
+    display: block;
+    clear: both;
+  }
+  div {
+    position: relative;
+    float: left;
+    width: 400px;
+    height: 100px;
+    margin: 4px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 0 3px 0 rgba(0,0,0,0.1);
+
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    will-change: opacity, transform;
+
+    transition: all cubic-bezier(0.4, 0.0, 0.2, 1) 375ms;
+    transition-property: opacity, transform;
+  }
+  section:hover div {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  section:hover div:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  section:hover div:nth-child(2) {
+    transition-delay: 20ms;
+  }
+  section:hover div:nth-child(3) {
+    transition-delay: 40ms;
+  }
+  section:hover div:nth-child(4) {
+    transition-delay: 60ms;
+  }
+  section:hover div:nth-child(5) {
+    transition-delay: 80ms;
+  }
+  section:hover div:nth-child(6) {
+    transition-delay: 100ms;
+  }
+
+  div:nth-child(1) {
+    transition-delay: 100ms;
+  }
+  div:nth-child(2) {
+    transition-delay: 80ms;
+  }
+  div:nth-child(3) {
+    transition-delay: 60ms;
+  }
+  div:nth-child(4) {
+    transition-delay: 40ms;
+  }
+  div:nth-child(5) {
+    transition-delay: 20ms;
+  }
+  div:nth-child(6) {
+    transition-delay: 0ms;
+  }
+</style>
+
+<section>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+</section>
