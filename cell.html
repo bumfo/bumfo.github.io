@@ -53,6 +53,9 @@
       
       window.addEventListener('resize', onresize)
     }
+    try { eval('document.createElement("canvas").getContext("2d")') } catch (e) {
+      load('s/excanvas.js')
+    }
   }
 
   function load(uri) {
