@@ -33,7 +33,7 @@ function initCanvas() {
   ctx.fillStyle = 'black'
 }
 
-var tile = 10
+var tile = 1
 var steps = (canvasHeight / tile)|0 + 1
 
 var length = steps * 2
