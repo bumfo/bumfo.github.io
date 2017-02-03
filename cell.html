@@ -22,6 +22,9 @@
       var p = 'addEventListener'
       Window.prototype[p] = HTMLDocument.prototype[p] = Element.prototype[p] = function(type, listener) {
         var target = this
+        if (type === 'DOMContentLoaded') {
+          type = 'load'
+        }
 
         registry.unshift([target, type, listener, function (event) {
           event.currentTarget = target
