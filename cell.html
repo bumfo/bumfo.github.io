@@ -10,6 +10,12 @@
     var source = xhr.responseText
     try { eval('let a = 0') } catch (e) { source = source.replace(/\b(?:let)\b/g, 'var') }
     try { eval('new Int8Array(8)') } catch (e) { source = source.replace(/\b(?:Int8Array)\b/g, 'Array') }
+    try { eval('[].fill(0)') } catch (e) { Array.prototype.fill = function(x) {
+      x = x | 0
+      for (var i = 0; i < this.length; i++) {
+        this[i] = x
+      }
+    }; }
     return new Function('"use strict";\n' + source)()
   }
 
