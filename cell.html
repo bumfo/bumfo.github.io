@@ -43,6 +43,16 @@
         setTimeout(fn, 1000 / 60)
       }
     }
+    try { eval('innerWidth, innerHeight') } catch (e) {
+      function onresize() {
+        window.innerWidth = document.documentElement.clientWidth || document.body.clientWidth
+        window.innerHeight = document.documentElement.clientHeight || document.body.clientHeight
+      }
+
+      onresize()
+      
+      window.addEventListener('resize', onresize)
+    }
   }
 
   function load(uri) {
