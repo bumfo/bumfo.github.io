@@ -38,6 +38,11 @@
         this.attachEvent("on" + type, registry[0][3])
       }
     }
+    try { eval('requestAnimationFrame(function() {})') } catch (e) {
+      window['requestAnimationFrame'] = function(fn) {
+        setTimeout(fn, 1000 / 60)
+      }
+    }
   }
 
   function load(uri) {
