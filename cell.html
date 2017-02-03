@@ -6,12 +6,35 @@
 !function() {
   'use strict'
 
-  function fill(x) {
-    x = x|0
-    for (var i = 0; i < this.length; i++) {
-      this[i] = x
+  function polyfill() {
+    function fill(x) {
+      x = x|0
+      for (var i = 0; i < this.length; i++) {
+        this[i] = x
+      }
+      return this
     }
-    return this
+
+    try { eval('new Array(8).fill(0)') } catch (e) { Array.prototype.fill = fill }
+    try { eval('new Int8Array(8).fill(0)') } catch (e) { typeof Int8Array !== 'undefined' && (Int8Array.prototype.fill = fill) }
+    try { eval('window.addEventListener("DOMContentLoaded", function() {})') } catch (e) { 
+      var registry = []
+      var p = 'addEventListener'
+      Window.prototype[p] = HTMLDocument.prototype[p] = Element.prototype[p] = function(type, listener) {
+        var target = this
+
+        registry.unshift([target, type, listener, function (event) {
+          event.currentTarget = target
+          event.preventDefault = function () { event.returnValue = false }
+          event.stopPropagation = function () { event.cancelBubble = true }
+          event.target = event.srcElement || target
+
+          listener.call(target, event)
+        }])
+
+        this.attachEvent("on" + type, registry[0][3])
+      }
+    }
   }
 
   function load(uri) {
@@ -21,11 +44,14 @@
     var source = xhr.responseText
     try { eval('let a = 0') } catch (e) { source = source.replace(/\b(?:let)\b/g, 'var') }
     try { eval('new Int8Array(8)') } catch (e) { source = source.replace(/\b(?:Int8Array)\b/g, 'Array') }
-    try { eval('new Array(8).fill(0)') } catch (e) { Array.prototype.fill = fill }
-    try { eval('new Int8Array(8).fill(0)') } catch (e) { typeof Int8Array !== 'undefined' && (Int8Array.prototype.fill = fill) }
+
     return new Function('"use strict";\n' + source)()
   }
 
-  load('cell.js?ver=0.1')
-}()
+  polyfill()
+    
+  this['__load'] = load
+}.call(this)
+
+__load('cell.js?ver=0.1')
 </script>
