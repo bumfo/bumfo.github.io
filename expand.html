@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<title>Material Expand</title>
+
+<style>
+  body {
+    margin: 100px;
+    background: #eee;
+  }
+  div {
+    overflow: hidden;
+
+    width: 200px;
+    height: 56px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 3px 6px 0 rgba(0,0,0,0.3), 0 0 5px 0 rgba(0,0,0,0.1);
+
+    transition: all cubic-bezier(0.4, 0.0, 0.2, 1) 375ms;
+    transition-property: width, height;
+    transition-delay: 75ms, 0ms;
+  }
+  div:hover {
+    width: 400px;
+    height: 400px;
+    transition-delay: 0ms, 75ms;
+  }
+  section {
+    padding: 16px;
+    font: 16px/24px '--apple-system', 'BlinkMacSystemFont', sans-serif;
+  }
+  .details {
+    opacity: 0;
+    will-change: opacity;
+
+    transition: all cubic-bezier(0.4, 0.0, 0.2, 1) 150ms;
+    transition-property: opacity;
+    transition-delay: 0ms;
+  }
+  div:hover .details {
+    opacity: 1;
+    
+    transition-delay: 75ms;
+  }
+</style>
+
+<div>
+  <section>
+    Hello, World!
+  </section>
+  <section class="details">
+    Greatly!
+  </section>
+</div>
