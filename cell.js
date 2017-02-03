@@ -38,7 +38,8 @@ var steps = (canvasHeight / tile)|0 + 1
 
 var length = steps * 2
 var viewLength = (canvasWidth / tile)
-var vector = new Array(length).fill(0)
+var vector = new Int8Array(length).fill(0)
+var next = new Int8Array(length)
 vector[(length / 2)|0] = 1
 var step = 0
 var offset = (length + 1 - viewLength) / 2
@@ -57,11 +58,15 @@ function fn(a, b, c) {
 
 function onTick() {
   ++step
-  var next = new Array(vector.length).fill(0)
+  
+  next.fill(0)
   for (var i = 0; i + 2 < vector.length; ++i) {
     next[i + 1] = fn(vector[i + 0], vector[i + 1], vector[i + 2])
   }
+  
+  var oldVector = vector
   vector = next
+  next = oldVector
 }
 
 function onResize() {

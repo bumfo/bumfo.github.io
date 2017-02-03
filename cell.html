@@ -2,4 +2,16 @@
 <title>Cellular Automata</title>
 <meta name=viewport content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
-<script src="cell.js"></script>
+<script>
+  function load(uri) {
+    var xhr = new XMLHttpRequest
+    xhr.open('get', uri, false)
+    xhr.send()
+    var source = xhr.responseText
+    try { eval('let a = 0') } catch (e) { source = source.replace(/\b(?:let)\b/g, 'var') }
+    try { eval('new Int8Array(8)') } catch (e) { source = source.replace(/\b(?:Int8Array)\b/g, 'Array') }
+    return new Function('"use strict";\n' + source)()
+  }
+
+  load('cell.js?ver=0.1')
+</script>
