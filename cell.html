@@ -3,6 +3,16 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
 <script>
+!function() {
+  'use strict'
+
+  function fill(x) {
+    x = x|0
+    for (var i = 0; i < this.length; i++) {
+      this[i] = x
+    }
+  }
+
   function load(uri) {
     var xhr = new XMLHttpRequest
     xhr.open('get', uri, false)
@@ -10,14 +20,11 @@
     var source = xhr.responseText
     try { eval('let a = 0') } catch (e) { source = source.replace(/\b(?:let)\b/g, 'var') }
     try { eval('new Int8Array(8)') } catch (e) { source = source.replace(/\b(?:Int8Array)\b/g, 'Array') }
-    try { eval('[].fill(0)') } catch (e) { Array.prototype.fill = function(x) {
-      x = x | 0
-      for (var i = 0; i < this.length; i++) {
-        this[i] = x
-      }
-    }; }
+    try { eval('new Array(8).fill(0)') } catch (e) { Array.prototype.fill = fill }
+    try { eval('new Int8Array(8).fill(0)') } catch (e) { Int8Array && (Int8Array.prototype.fill = fill) }
     return new Function('"use strict";\n' + source)()
   }
 
   load('cell.js?ver=0.1')
+}()
 </script>
