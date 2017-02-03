@@ -22,7 +22,7 @@
     try { eval('let a = 0') } catch (e) { source = source.replace(/\b(?:let)\b/g, 'var') }
     try { eval('new Int8Array(8)') } catch (e) { source = source.replace(/\b(?:Int8Array)\b/g, 'Array') }
     try { eval('new Array(8).fill(0)') } catch (e) { Array.prototype.fill = fill }
-    try { eval('new Int8Array(8).fill(0)') } catch (e) { Int8Array && (Int8Array.prototype.fill = fill) }
+    try { eval('new Int8Array(8).fill(0)') } catch (e) { typeof Int8Array !== 'undefined' && (Int8Array.prototype.fill = fill) }
     return new Function('"use strict";\n' + source)()
   }
 
