@@ -20,7 +20,10 @@
     try { eval('window.addEventListener("DOMContentLoaded", function() {})') } catch (e) { 
       var registry = []
       var p = 'addEventListener'
-      Window.prototype[p] = HTMLDocument.prototype[p] = Element.prototype[p] = function(type, listener) {
+      var WindowProto = typeof Window === 'undefined' ? window : Window.prototype
+      var HTMLDocumentProto = typeof HTMLDocument === 'undefined' ? document : HTMLDocument.prototype
+      var ElementProto = typeof Element === 'undefined' ? {} : Element.prototype
+      WindowProto[p] = HTMLDocumentProto[p] = ElementProto[p] = function(type, listener) {
         var target = this
         if (type === 'DOMContentLoaded') {
           type = 'load'
@@ -55,6 +58,15 @@
     }
     try { eval('document.createElement("canvas").getContext("2d")') } catch (e) {
       load('s/excanvas.js')
+
+      var createElement = document.createElement
+      document.createElement = function(type) {
+        var el = createElement.call(document, type)
+        if (type === 'canvas') {
+          G_vmlCanvasManager.initElement(el)
+        }
+        return el
+      }
     }
   }
 
