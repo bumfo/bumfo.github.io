@@ -229,7 +229,7 @@ $jscomp.arrayFromIterable = function(a) {
     return function(a) {
       return new Promise(function(b, d) {
         var c = new XMLHttpRequest;
-        c.open("post", a);
+        c.open("get", a);
         c.onload = function() {
           200 === c.status ? b(c.responseText) : d(c.status);
         };
