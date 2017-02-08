@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>Shad</title>
+
+<style>
+  body {
+    background: hsl(0, 0%, 95%);
+    margin: 0;
+    overflow: hidden;
+  }
+</style>
+
+<canvas></canvas>
+
+<script src="lib/import.dist.js"></script>
+<script>
+  System.root('.')
+
+  System.customize('.vs')
+  System.customize('.fs')
+  
+  System.import('/shad.js')
+</script>
