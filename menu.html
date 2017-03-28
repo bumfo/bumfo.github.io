@@ -1,0 +1,99 @@
+<!doctype html>
+<title>Menu</title>
+
+<style>
+pre { display: none }
+html {
+  background-image: -webkit-linear-gradient(#eee .5px, transparent .5px);
+  background-size: 100% 1.5rem;
+  padding-top: .6rem;
+  margin-top: -.6rem }
+body {
+  margin: 0!important }
+dl { margin: 0 1.5rem }
+dt {
+  margin: 1.5rem 0 0 0;
+  /*margin: 0;*/
+  /*padding-top: .4rem;*/
+  /*margin-bottom: -.4rem;*/
+  font: 600 1rem/1.5rem 'papyrus', helvetica, sans-serif }
+dd { 
+  margin: 0;
+  /*padding-top: .45rem;*/
+  /*margin-bottom: -.45rem;*/
+  font: 200 italic .75rem/1.5rem 'papyrus', 'cochin', 'times new roman', serif }
+
+figure { margin: 0 1.5rem }
+figcaption {
+  padding: 1.5rem 0 0 0;
+  margin: 1.5rem 0 0 0;
+  font: 800 1rem/1.5rem 'zapfino', 'times new roman', serif }
+</style>
+
+<main></main>
+
+<pre>
+Starters 
+  Gertrude's Famous Onion Loaf - 8 
+  Gazpacho or Asparagus-Spinach Soup - 7 
+  Summer Garden Tomato Salad - 8
+    sliced vine-ripened yellow and red tomatoes with fresh mozzarella and basil Balsamic vinaigrette 
+  Hamlet's Chopped Salad - 7
+    cubed cucumbers, radishes, avocado, tomatoes, Jarlsberg cheese, and romaine leaves tossed in a light lemon vinaigrette 
+  Caesar Salad - 7 
+    house-made dressing, Parmesan, and croutons 
+  Caribbean Ceviche - 9 
+    lime-marinated baby scallops with red pepper, onions, cilantro, jalapenos, and orange juice 
+  Shrimp Cocktail - 14 
+    five large shrimp with house-made cocktail sauce 
+Entrees 
+  New York steak, 16 ounce - 27 
+  Rotisserie Chicken - 17 
+  Fresh Fish, 10 ounce - Market Price 
+  Grilled Shrimp - 24 
+  New Orleans Lump Crab Cakes - 18
+    with warm vegetable coleslaw, mashed potatoes, spinach, and Romesco sauce 
+  Grilled Portobello Mushroom - 18
+    stuffed with Ricotta cheese, garlic, onions and spinach, served over mashed potatoes 
+  New Zealand Rack of Lamb - 26 
+  Barbequed Baby Back Ribs - 24 
+  Australian Lobster Tail, 10 ounce - Market Price 
+  Surf &amp; Turf
+    Australian Lobster &amp; 8 ounce Filet - Market Price
+</pre>
+
+<script>
+
+var map = [
+  'figure',
+  'dl',
+  'dd',
+]
+
+var sp = [
+  'figcaption',
+  'dt',
+  'span',
+]
+
+var pre = document.querySelector('pre')
+var text = pre.textContent
+var lines = text.split('\n')
+var div = document.createElement('div')
+var level = [div]
+lines.forEach(function(s) {
+  var x = s.match(/^\s*/)[0].length
+  var l = x / 2 | 0
+  var el = document.createElement(map[l])
+  var span = document.createElement(sp[l])
+  span.textContent = s
+  el.appendChild(span)
+  while (level.length - 1 > l)
+    level.pop()
+  level[level.length - 1].appendChild(el)
+  level.push(el)
+})
+
+var main = document.querySelector('main')
+main.appendChild(div)
+</script>
