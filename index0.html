@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<title>@bumfo</title>
+<meta charset="utf-8">
+<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<style>
+  html {
+    font-size: 10px;
+  }
+  body {
+    margin: 0;
+    overflow-x: hidden;
+  }
+  main {
+    overflow-x: hidden;
+    /*white-space:nowrap;*/
+  }
+  h1, h1>em, input {
+    font: 100 10rem/14rem '-apple-system', 'BlinkMacSystemFont', 'helvetica neue', sans-serif;
+  }
+  h1 {
+    display: block;
+    width: 100%;
+    margin: 1em 0;
+    padding: 0 1em;
+    box-sizing: border-box;
+    border: none;
+
+    outline: none;
+
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  h1>span {
+    color: rgba(0,0,0,0.5);
+  }
+  h1>em {
+    position: absolute;
+    pointer-events: none;
+    color: rgb(255,0,0);
+    /*color: rgba(0,0,0,0);*/
+    z-index: -1;
+    margin-left: 1em;
+  }
+  h1>label {
+    margin-right: -1em;
+  }
+  h1>form>input {
+    margin-left: 1em;
+  }
+
+  form {
+    display: inline;
+  }
+
+  input {
+    display: inline-block;
+    width: 70rem;
+    height: 14rem;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border: none;
+
+    outline: none;
+    background: none;
+
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
+  input,
+  textarea {
+    color: transparent;
+    text-shadow: 0px 0px 0px #000;
+    -webkit-text-fill-color: transparent;
+  }
+
+  input::-webkit-input-placeholder,
+  textarea::-webkit-input-placeholder {
+    color: #ccc;
+    text-shadow: none;
+    -webkit-text-fill-color: initial;
+  }
+
+  .mainInput:focus + .caret {
+    background: black;
+    -webkit-animation: caret 0.5s ease 0.375s alternate infinite;
+    -moz-animation: caret 0.5s ease 0.375s alternate infinite;
+    -o-animation: caret 0.5s ease 0.375s alternate infinite;
+    animation: caret 0.5s ease 0.375s alternate infinite;
+  }
+
+  @-webkit-keyframes caret {
+    25% {
+      opacity: 1; }
+    100% {
+      opacity: 0; } }
+  @-moz-keyframes caret {
+    25% {
+      opacity: 1; }
+    100% {
+      opacity: 0; } }
+  @-o-keyframes caret {
+    25% {
+      opacity: 1; }
+    100% {
+      opacity: 0; } }
+  @keyframes caret {
+    25% {
+      opacity: 1; }
+    100% {
+      opacity: 0; } }
+
+
+  @media (max-width: 1012px) {
+    html {
+      font-size: 7.5px;
+    }
+    h1 {
+      font-weight: 100;
+    }
+  }
+
+  @media (max-width: 760px) {
+    html {
+      font-size: 5.5px;
+    }
+    h1 {
+      font-weight: 100;
+    }
+  }
+
+  @media (max-width: 560px) {
+    html {
+      font-size: 3.5px;
+    }
+    h1 {
+      font-weight: 200;
+    }
+    input {
+      font-weight: 200;
+    }
+  }
+
+</style>
+
+<main>
+  <h1><label><span>@</span>bumfo/</label><em>what you want?</em><form><input placeholder="what you want?" maxlength=32 class="mainInput"></form></h1>
+</main>
+<script src="./s/m.js"></script>
+<script>
+var mainInput = document.querySelector('.mainInput')
+mainInput.autofill = false
+mainInput.autocomplete = false
+mainInput.autocorrect = false
+mainInput.spellcheck = false
+
+window.addEventListener('DOMContentLoaded', function() {
+  if (!('ontouchstart' in window))
+    mainInput.focus()
+  updateCaretSize()
+})
+
+var getCaretCoordinates = require('./s/caret_coordinates.js')
+
+var coordinates = null
+
+var fontSize
+var rect = document.createElement('div')
+document.querySelector('form').appendChild(rect)
+rect.className = 'caret'
+rect.style.position = 'absolute'
+// rect.style.backgroundColor = 'black'
+
+
+function updateCaretSize() {
+  fontSize = getComputedStyle(mainInput).getPropertyValue('font-size')
+  rect.style.height = (fontSize.match(/^(\d+)px$/)[1] * 1.2) + 'px'
+  rect.style.width = '1px'
+}
+
+function updatePosition() {
+  rect.style.top = mainInput.offsetTop - mainInput.scrollTop + coordinates.top + 'px'
+  rect.style.left = mainInput.offsetLeft - mainInput.scrollLeft + coordinates.left + 'px'
+}
+
+function updateCaret() {
+  rect.className = ''
+  updatePosition()
+  rect.className = 'caret'
+}
+
+function updateCoordinates() {
+  coordinates = getCaretCoordinates(mainInput, mainInput.selectionEnd)
+}
+
+!['input', 'focus'].forEach(function(eventName) {
+  mainInput.addEventListener(eventName, function() {
+    updateCoordinates()
+    updateCaret()
+  })
+})
+
+!['keydown', 'mousedown', 'touchend'].forEach(function(eventName) {
+  mainInput.addEventListener(eventName, function() {
+    setTimeout(function() {
+      updateCoordinates()
+      updateCaret()
+    })
+  })
+})
+
+!['scroll'].forEach(function(eventName) {
+  mainInput.addEventListener(eventName, function() {
+    updatePosition()
+  })
+})
+
+window.addEventListener('focus', function() {
+  mainInput.focus()
+})
+
+window.addEventListener('mousedown', function(e) {
+  if (document.activeElement === mainInput && e.target !== mainInput)
+    e.preventDefault()
+})
+
+window.addEventListener('resize', function() {
+  updateCaretSize()
+  updateCoordinates()
+  updatePosition()
+})
+</script>

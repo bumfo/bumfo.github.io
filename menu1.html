@@ -33,29 +33,16 @@ figcaption {
 
 dt {
   position: relative }
-/*dd {
-  max-width: 80% }*/
-dt {
-  margin-right: 120px }
-dd {
-  margin-right: 40px }
+dt, dd {
+  max-width: 80% }
 var {
-  text-indent: 0;
-  vertical-align:middle;
   display: block;
-  float: right;
-  /*position: absolute;*/
-  margin-right: -120px;
-  /*padding-right: 1.5rem;*/
+  position: absolute;
+  margin-right: 1.5rem;
+  right: -25%;
+  top: 0;
   font: inherit }
 
-
-dt {
-  padding-left: 1.5rem;
-  text-indent: -1.5rem }
-
-main {
-  max-width: 600px }
 
 </style>
 
@@ -78,7 +65,7 @@ Starters
 Entrees 
   New York steak, 16 ounce - 27 
   Rotisserie Chicken - 17 
-  Fresh Fish, 10&nbsp;ounce - Market Price 
+  Fresh Fish, 10 ounce - Market Price 
   Grilled Shrimp - 24 
   New Orleans Lump Crab Cakes - 18
     with warm vegetable coleslaw, mashed potatoes, spinach, and Romesco sauce 
@@ -87,7 +74,7 @@ Entrees
   New Zealand Rack of Lamb - 26 
   Barbequed Baby Back Ribs - 24 
   Australian Lobster Tail, 10 ounce - Market Price 
-  Surf &amp; Turf: Australian Lobster &amp; 8&nbsp;ounce Filet - Market Price
+  Surf &amp; Turf: Australian Lobster &amp; 8 ounce Filet - Market Price
 </pre>
 
 <script>
@@ -116,7 +103,8 @@ lines.forEach(function(s) {
   var inner = document.createElement(mapIn[l])
 
   var w = s.split(" - ")
-  inner.appendChild(document.createTextNode(w[0]))
+
+  inner.textContent = w[0]
   if (w.length > 1) {
     var m = document.createElement('var')
     m.textContent = w[1]
