@@ -1,0 +1,101 @@
+$root_font_size: 16px;
+$line_height: 1.375rem;
+$offset: 6 * 0.0625rem;
+$offset_h1: 0.1875rem;
+$offset_h2: 0.0625rem;
+$offset_code: 0.0625rem;
+
+$baseline: $line_height / 2;
+
+html {
+  font-size: $root_font_size;
+  line-height: $line_height;
+  font-family: "Source Sans Pro", helvetica, sans-serif;
+  background-image: linear-gradient(#eee 0.5px, transparent 0.5px);
+  background-size: 100% $baseline;
+  // background-position: 0 $offset;
+  > body {
+    margin: 0;
+  }
+}
+article {
+  margin: 2 * $line_height + $baseline - $offset auto 0;
+  width: 35rem;
+  > p {
+    margin: 0 0 $baseline;
+  }
+  > h1 {
+    font-size: 37px;
+    font-weight: 400;
+    line-height: 4 * $baseline;
+    margin: 3 * $baseline 0 2 * $baseline;
+    position: relative;
+    top: $offset_h1;
+  }
+  > h2 {
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 3 * $baseline;
+    margin: 3 * $baseline 0 $baseline;
+    position: relative;
+    top: $offset_h2;
+
+    $padding_top: 3 * $baseline - $offset + $offset_h2;
+    &::before {
+      content: '';
+      display: block;
+      margin-top: -$padding_top;
+      padding-top: $padding_top;
+    }
+    > .anchor {
+      outline: none;
+      &::before {
+        content: '#\00a0';
+        display: block;
+        float: left;
+        width: 1.75rem;
+        margin-left: -1.75rem;
+        color: #000;
+        margin-top: -$padding_top;
+        padding-top: $padding_top;
+        opacity: 0;
+        transition: opacity ease-in-out .25s;
+        transition-delay: 0s;
+      }
+    }
+    &:hover > .anchor::before {
+      opacity: 1;
+      will-change: opacity;
+      transition-delay: .25s;
+    }
+    > .anchor:target:focus::before {
+      opacity: 1;
+      transition-delay: .25s;
+    }
+    &:hover > .anchor:target:focus::before {
+      opacity: 1;
+      transition-delay: 0s;
+    }
+  }
+  > .code {
+    $margin_top: if($offset > 0, 1, 2) * $baseline;
+    $margin_bottom: if(-$offset > 0, 1, 2) * $baseline;
+    margin: $margin_top + $offset 0 $margin_bottom - $offset;
+    padding: $margin_bottom - $offset $margin_top + $offset $margin_top + $offset;
+    white-space: normal;
+    background: #eee;
+    background: rgba(0, 0, 0, .066666667);
+    > code {
+      font-family: consolas, monospace;
+      position: relative;
+      top: $offset_code;
+      > p {
+        margin: 0;
+        &::before {
+          content: '$ ';
+        }
+      }
+    }
+  }
+
+}
