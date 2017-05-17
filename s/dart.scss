@@ -1,9 +1,12 @@
 $root_font_size: 16px;
 $line_height: 1.375rem;
-$offset: 6 * 0.0625rem;
-$offset_h1: 0.1875rem;
-$offset_h2: 0.0625rem;
-$offset_code: 0.0625rem;
+
+$offset_unit: 1px / $root_font_size * 1rem;
+
+$offset: 6 * $offset_unit;
+$offset_h1: 4 * $offset_unit;
+$offset_h2: 2 * $offset_unit;
+$offset_code: 1 * $offset_unit;
 
 $baseline: $line_height / 2;
 
