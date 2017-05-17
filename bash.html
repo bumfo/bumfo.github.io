@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<title>Bash</title>
+
+<style>
+  html {
+    font: 16px/1.375 helvetica, sans-serif;
+    background-image: linear-gradient(#eee 0.5px, transparent 0.5px);
+    background-size: 100% 0.6875rem;
+    /*background-position: 0 0.3rem;*/
+    background-position: 0 0.3125rem;
+  }
+  body {
+    margin: 0;
+  }
+  article {
+    margin: 2.75rem auto;
+    width: 35rem;
+  }
+  article > p {
+    margin: 0 0 0.6875rem;
+  }
+  .code {
+    /*margin: 0.6875rem+0.3125rem 0 1.375rem-0.3125rem;*/
+    margin: 1.0rem 0 1.0625rem;
+    /*padding: 1.375rem-0.3125rem 0.6875rem+0.3125rem 0.6875rem+0.3125rem;*/
+    padding: 1.0625rem 1rem 1rem;
+    white-space: normal;
+    background: #eee;
+    background: rgba(0, 0, 0, .066666667);
+  }
+  .code.bash > code {
+    font-family: consolas, monospace;
+    position: relative;
+    top: 0.05rem;
+  }
+  .code.bash > code > p {
+    margin: 0;
+  }
+  .code.bash > code > p::before {
+    content: '$ ';
+  }
+</style>
+
+<article>
+  <p>The Dart SDK contains the VM, analyzer, formatter, documentation generator, package manager, and the core libraries. </p>
+  <p>Install homebrew, and then run: </p>
+  <pre class="code bash"><code>
+    <p>brew tap dart-lang/dart</p>
+    <p>brew install dart</p>
+  </code></pre>
+  <p>If you use Dart for web development work, you should also install Dartium and Content Shell: </p>
+  <pre class="code bash"><code>
+    <p>brew tap dart-lang/dart</p>
+    <p>brew install dart --with-content-shell --with-dartium</p>
+  </code></pre>
+</article>
