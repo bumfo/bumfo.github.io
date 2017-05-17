@@ -22,3 +22,24 @@
   <p><br></p>
   <div style="height: 1000px"></div>
 </article>
+
+<script>
+  var timeoutId = 0
+  function autoBlur(e) {
+    var that = this
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(function() {
+      that.blur()
+    }, 375)
+  }
+
+  function smoothAnchor(e) {
+    e.preventDefault()
+    console.dir(this.hash)
+  }
+
+  document.querySelectorAll('a.anchor[id][href]').forEach(function(el) {
+    el.addEventListener('focus', autoBlur)
+    // el.addEventListener('click', smoothAnchor)
+  })
+</script>
