@@ -19,19 +19,43 @@
 
   main {
     width: 100%;
-    height: 7.2rem;
+    height: 51.2rem;
+    line-height: 51.2rem;
 
+/*    background: url(snow.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+*/
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
 
-    margin: auto; }
+    /*color: #5E9CD3;*/
+    color: hsl(208, 57%, 50%);
+
+
+    margin: auto; 
+    text-align: center; }
+    main > img {
+      user-select: none;
+      filter: blur(10px); }
     main > h1 {
-      text-align: center; }
+      position: absolute;
+
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+
+      text-indent: -9999999px;
+
+      background-color: rgba(255, 255, 255, 0.5); }
+
 </style>
 
 <main>
+  <img src="snow.svg" width="512">
   <h1>Hello, I'm bumfo. </h1>
 </main>
