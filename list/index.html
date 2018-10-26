@@ -18,8 +18,8 @@
   }
 
   ul.list li {
-    transition-property: transform;
-    transition-timing-function: linear;
+    /*transition-property: transform;*/
+    /*transition-timing-function: linear;*/
   }  
 
   ul.list li:not([contenteditable])::before {
@@ -70,64 +70,92 @@
 
       this.down = false;
 
-      this.last = null;
+      this.downX = 0;
+      this.downY = 0;
+
+      this.v = 5;
 
       this.x = 0;
       this.y = 0;
 
+      this.last = null;
+
+      var frame = () => {
+        var m = el.style.transform.match(/translate3d\(([-\d\.]+)(?:px),\s*?([-\d\.]+)(?:px)?,\s*[^)]+\)/);
+
+        var lastX = 0;
+        var lastY = 0;
+
+        if (m !== null) {
+          lastX = parseFloat(m[1]);
+          lastY = parseFloat(m[2]);
+        }
+
+        var dx = this.x - lastX;
+        var dy = this.y - lastY;
+
+        var v = Math.sqrt(dx * dx + dy * dy);
+
+        var maxV = this.v;
+
+        var x = dx / v * Math.min(maxV, v) + lastX;
+        var y = dy / v * Math.min(maxV, v) + lastY;
+
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        if (this.down || Math.hypot(lastX - x, lastY - y) > 0.1) {
+          requestAnimationFrame(frame);
+        } else {
+          el.style.transform = '';
+        }
+      };
+
       el.addEventListener('mousedown', e => {
         this.down = true;
-        this.last = performance.now();
 
-        this.x = e.pageX;
-        this.y = e.pageY;
+        this.downX = e.pageX;
+        this.downY = e.pageY;
 
         el.style.transform = `translate3d(0, 0, 0)`;
+
+        this.last = performance.now();
+
+        requestAnimationFrame(frame);
       }, true);
 
       addEventListener('mousemove', e => {
         if (this.down) {
-          var m = el.style.transform.match(/translate3d\((\d+)(?:px),\s*?(\d+)(?:px)?,\s*[^)]+\)/);
+          var lastX = this.x;
+          var lastY = this.y;
 
-          var lastX = 0;
-          var lastY = 0;
+          this.x = e.pageX - this.downX;
+          this.y = e.pageY - this.downY;
 
-          if (m !== null) {
-            lastX = parseFloat(m[1]);
-            lastY = parseFloat(m[2]);
-          }
+          var now = performance.now();
 
-          var x = e.pageX - this.x;
-          var y = e.pageY - this.y;
+          var dt = (now - this.last) / 1000 * 60;
 
-          el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          var dx = this.x - lastX;
+          var dy = this.y - lastY;
 
-          var t = 0;
+          var d = Math.sqrt(dx * dx + dy * dy);
 
-          var m = el.style.transitionDuration.match(/(\d+)s/);
+          this.v = d / dt;
 
-          if (m !== null) {
-            t = m[1] * 1000;
-          }
-
-          var dt = performance.now() - this.last;
-
-          var dx = x - lastX * dt / t;
-          var dy = y - lastY * dt / t;
-
-          el.style.transitionDuration = (10 / Math.sqrt(dx * dx + dy * dy)) + 's';
-
-          this.last = performance.now();
+          this.last = now;
         }
       }, true);
 
-      el.addEventListener('webkitAnimationIteration', e => {
-        console.log(e);
-      });
-
       addEventListener('mouseup', e => {
+        var lastX = this.x;
+        var lastY = this.y;
+
+        this.x = 0;
+        this.y = 0;
+
         this.down = false;
-        el.style.transform = '';
+
+        this.v = Math.sqrt(lastX * lastX + lastY * lastY) / 6;
       }, true);
     }
   }
