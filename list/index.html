@@ -1,0 +1,142 @@
+<!doctype html>
+<title>List</title>
+
+<style>
+  html, body, ul, ol, h1, h2, h3, h4, h5, h6, p {
+    padding: 0;
+    margin: 0;
+    font: 16px/22px helvetica, sans-serif;
+    user-select: none;
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+
+  main {
+    padding: 15px;
+  }
+
+  ul.list li {
+    transition-property: transform;
+    transition-timing-function: linear;
+  }  
+
+  ul.list li:not([contenteditable])::before {
+    content: '\200b';
+  }
+
+  ul.list li[contenteditable]:empty::after {
+    content: 'Type more...';
+    pointer-events: none;
+    opacity: 0.5;
+  }
+</style>
+
+<main>
+  <ul class="list">
+    <li>Groceries for dinner</li>
+    <li>Send the presentation to Jeff</li>
+    <li>Take the jacket to dry cleaning</li>
+    <li>Fix dad's tablet</li>
+    <li>Talk with Steve about this trip</li>
+    <li contenteditable id="addInput"></li>
+  </ul>
+</main>
+
+<script src="base.js">
+</script>
+
+<script>
+  var addInput = document.querySelector('#addInput');
+
+  addInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      var el = document.createElement('li');
+      el.textContent = this.textContent;
+
+      console.log(this.parentElement.insertBefore(el, this));
+      this.textContent = '';
+    }
+  });
+
+  listEls = document.querySelectorAll('ul.list');
+
+  class Dragger {
+    constructor(el) {
+      this.el = el;
+
+      this.down = false;
+
+      this.last = null;
+
+      this.x = 0;
+      this.y = 0;
+
+      el.addEventListener('mousedown', e => {
+        this.down = true;
+        this.last = performance.now();
+
+        this.x = e.pageX;
+        this.y = e.pageY;
+
+        el.style.transform = `translate3d(0, 0, 0)`;
+      }, true);
+
+      addEventListener('mousemove', e => {
+        if (this.down) {
+          var m = el.style.transform.match(/translate3d\((\d+)(?:px),\s*?(\d+)(?:px)?,\s*[^)]+\)/);
+
+          var lastX = 0;
+          var lastY = 0;
+
+          if (m !== null) {
+            lastX = parseFloat(m[1]);
+            lastY = parseFloat(m[2]);
+          }
+
+          var x = e.pageX - this.x;
+          var y = e.pageY - this.y;
+
+          el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+          var t = 0;
+
+          var m = el.style.transitionDuration.match(/(\d+)s/);
+
+          if (m !== null) {
+            t = m[1] * 1000;
+          }
+
+          var dt = performance.now() - this.last;
+
+          var dx = x - lastX * dt / t;
+          var dy = y - lastY * dt / t;
+
+          el.style.transitionDuration = (10 / Math.sqrt(dx * dx + dy * dy)) + 's';
+
+          this.last = performance.now();
+        }
+      }, true);
+
+      el.addEventListener('webkitAnimationIteration', e => {
+        console.log(e);
+      });
+
+      addEventListener('mouseup', e => {
+        this.down = false;
+        el.style.transform = '';
+      }, true);
+    }
+  }
+
+  for (var listEl of listEls) {
+    for (var li of listEl.children) {
+      if (!li.contenteditable) {
+        new Dragger(li);
+      }
+    }
+  }
+</script>

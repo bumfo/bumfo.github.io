@@ -12,6 +12,7 @@ html, body, h1, h2, h3, h4, h5, h6, ul, ol, li, p, input, button {
 body {
   &, &.light {
     --nav-bg-color: #F8F9FA;
+    // --nav-bg-color: #FAFAFA;
     --nav-fg-color: rgba(0, 0, 0, 0.9);
 
     --main-bg-color: transparent;
@@ -86,7 +87,7 @@ main {
 
 button {
   $theme-color: #16A2B7;
-  // $theme-color: #1A73E8;
+  // $theme-color: #49C5B6;
 
   border: 1px solid $theme-color;
   border-radius: 3px;
