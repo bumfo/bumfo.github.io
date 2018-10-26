@@ -1,0 +1,45 @@
+<!doctype html>
+<title>Saltjudge</title>
+
+<style>
+  @import url(base.css);
+</style>
+
+<nav>
+  <h1>Saltjudge</h1>
+  <div class="menu">
+    <ul>
+      <li>Scoreboard</li>
+    </ul>
+  </div>
+  <div class="utility">
+    <button>Sign in</button>
+  </div>
+</nav>
+
+<main>
+  <ul>
+    <li><a href="#dark">dark</a></li>
+    <li><a href="#light">light</a></li>
+  </ul>
+</main>
+
+<script>
+  function updateTheme(theme) {
+    document.body.className = theme;
+  }
+
+  function updateThemeFromHash() {
+    var hash = location.hash;
+
+    if (hash != '') {
+      updateTheme(hash.substr(1));
+    }
+  }
+
+  window.onhashchange = () => {
+    updateThemeFromHash();
+  }
+
+  updateThemeFromHash();
+</script>
