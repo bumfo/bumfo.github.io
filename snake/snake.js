@@ -207,21 +207,18 @@ window.addEventListener('DOMContentLoaded', function(e) {
   init();
 });
 
-window.addEventListener('keydown', function(e) {
+function updateDirection(dir) {
   var ai = 1; var aj = 0;
   var bi = 0; var bj = 1;
 
-  switch (e.code) {
-    case 'ArrowLeft':
+  switch (dir) {
+    case -1:
       ai = 0; aj = 1;
       bi = -1; bj = 0;
       break;
-    case 'ArrowRight': 
+    case +1: 
       ai = 0; aj = -1;
       bi = 1; bj = 0;
-      break;
-    case 'Space':
-      paused = !paused;
       break;
   }
 
@@ -230,4 +227,42 @@ window.addEventListener('keydown', function(e) {
 
   di = ddi;
   dj = ddj;
+}
+
+window.addEventListener('keydown', function(e) {
+  switch (e.code) {
+    case 'ArrowLeft':
+      updateDirection(-1);
+      break;
+    case 'ArrowRight': 
+      updateDirection(+1);
+      break;
+    case 'Space':
+      paused = !paused;
+      break;
+  }
 });
+
+
+window.addEventListener('touchstart', function(e) {
+  if (e.pageX < canvasWidth / 2) {
+    updateDirection(-1);
+  } else {
+    updateDirection(+1);
+  }
+})
+
+
+
+window.addEventListener('mousedown', function(e) {
+  if (e.pageX < canvasWidth / 2) {
+    updateDirection(-1);
+  } else {
+    updateDirection(+1);
+  }
+})
+
+
+window.addEventListener('resize', function(e) {
+  onResize()
+})
