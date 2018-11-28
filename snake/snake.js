@@ -66,8 +66,8 @@ function rand(l, r) {
   return ((Math.random() * (r - l)) + l) | 0
 }
 
-var N = 50;
-var M = 50;
+var N = Math.max(10, Math.min(window.innerWidth / 10 | 0, 50));
+var M = Math.max(10, Math.min(window.innerHeight / 10 | 0, 50));
 
 var FIELD_BLANK = 0;
 var FIELD_WALL = 1;
