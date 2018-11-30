@@ -423,3 +423,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
 window.addEventListener('resize', function(e) {
   onResize()
 })
+
+window.addEventListener('touchmove', function(e) {
+  e.preventDefault()
+}, { passive: false })
