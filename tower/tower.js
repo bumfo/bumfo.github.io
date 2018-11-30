@@ -52,7 +52,7 @@ let planeMaxSpeed = 14
 let planeMinSpeed = 7
 let gunClipSize = 3
 let gunHeatPerShot = 60 / 4
-let gunMaxTurnRate = Number.POSITIVE_INFINITY // Math.PI / 10
+let gunMaxTurnRate = Math.PI / 10
 let bulletSpeed = 14
 
 let planes = [
@@ -136,7 +136,7 @@ function updatePlanes() {
 
   // if (planes.length == 0) {
   if (Math.random() < planeCreateThreshold) {
-    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (planeMaxSpeed - planeMinSpeed) + planeMinSpeed) * planeSpeedModifier, vx: 0, vy: 0, bug: false}) //bug: Math.random() > 0.7})
+    planes.push({x: -100, y: Math.random() * (canvasHeight * 2 / 3 - 100) + 100, speed: (Math.random() * (planeMaxSpeed - planeMinSpeed) + planeMinSpeed) * planeSpeedModifier, vx: 0, vy: 0, bug: Math.random() > 0.7})
   }
 
   let i = 0
@@ -224,7 +224,7 @@ function updateGun() {
 
   let turn = angle - gun.angle
   
-  gun.angle = angle // Math.sign(turn) * Math.min(Math.abs(turn), gunMaxTurnRate) + gun.angle
+  gun.angle = Math.sign(turn) * Math.min(Math.abs(turn), gunMaxTurnRate) + gun.angle
 
   if (gunIsWaiting || gunIsWaitingOnce) {
     if (Math.abs(turn) < 1e-3) {
