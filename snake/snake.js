@@ -111,19 +111,19 @@ function drawField() {
       switch (A[i * M + j]) {
         case FIELD_BLANK: break;
         case FIELD_WALL: 
-          ctx.fillStyle = '#000';
+          //ctx.fillStyle = '#000';
           ctx.fillRect(x, y, CEIL_WIDTH, CEIL_HEIGHT);
           break;
         case FIELD_HEAD: 
-          ctx.fillStyle = 'red';
+          //ctx.fillStyle = 'red';
           ctx.fillRect(x, y, CEIL_WIDTH, CEIL_HEIGHT);
           break;
         case FIELD_BODY: 
-          ctx.fillStyle = 'grey';
+          //ctx.fillStyle = 'grey';
           ctx.fillRect(x, y, CEIL_WIDTH, CEIL_HEIGHT);
           break;
         case FIELD_FOOD: 
-          ctx.fillStyle = 'yellow';
+          //ctx.fillStyle = 'yellow';
           ctx.fillRect(x, y, CEIL_WIDTH, CEIL_HEIGHT);
           break;
       }
@@ -264,5 +264,9 @@ window.addEventListener('mousedown', function(e) {
 
 
 window.addEventListener('resize', function(e) {
-  onResize()
+  onResize();
 })
+
+window.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+}, { passive: false });
