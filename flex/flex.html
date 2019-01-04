@@ -1,0 +1,77 @@
+<!doctype html>
+<title>Flex</title>
+
+<style>
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  outline: 2px solid red;
+  outline-offset: -2px;
+}
+
+.container > div {
+  box-sizing: border-box;
+  /*flex: 1 0 250px;*/
+  flex: 0 0 calc(100% / var(--row-number) - 30px);
+  height: 160px;
+  margin: 15px;
+
+  border: 2px solid green;
+}
+
+:root {
+  --row-number: 1;
+}
+
+@media (min-width: 480px) {
+  :root {
+    --row-number: 2;
+  }
+}
+
+@media (min-width: 720px) {
+  :root {
+    --row-number: 3;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --row-number: 4;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --row-number: 5;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --row-number: 6;
+  }
+}
+
+</style>
+
+<div class="container">
+  <div>1</div>
+  <div>2</div>
+  <div>3</div>
+  <div>4</div>
+  <div>5</div>
+  <div>6</div>
+  <div>7</div>
+  <div>8</div>
+  <div>9</div>
+  <div>10</div>
+  <div>11</div>
+  <div>12</div>
+</div>
