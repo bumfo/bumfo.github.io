@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  font: 13px helvetica, sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 8px;
+}
+.container > div {
+  box-sizing: border-box;
+  /*flex: 1 0 250px;*/
+  flex: 0 0 calc(100% / var(--row-number) - 8px * 2);
+  height: 140px;
+  margin: 8px;
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid #dfe1e5;
+  background: #fff;
+  color: #5f6368;
+}
+
+:root {
+  --row-number: 1;
+}
+@media (min-width: 468px) {
+  :root {
+    --row-number: 2;
+  }
+}
+@media (min-width: 694px) {
+  :root {
+    --row-number: 3;
+  }
+}
+@media (min-width: 920px) {
+  :root {
+    --row-number: 4;
+  }
+}
+@media (min-width: 1146px) {
+  :root {
+    --row-number: 5;
+  }
+}
+@media (min-width: 1372px) {
+  :root {
+    --row-number: 6;
+  }
+}
+@media (min-width: 1598px) {
+  :root {
+    --row-number: 7;
+  }
+}
+@media (min-width: 1824px) {
+  :root {
+    --row-number: 8;
+  }
+}
+@media (min-width: 2050px) {
+  :root {
+    --row-number: 9;
+  }
+}
+@media (min-width: 2276px) {
+  :root {
+    --row-number: 10;
+  }
+}
+@media (min-width: 2502px) {
+  :root {
+    --row-number: 11;
+  }
+}
+@media (min-width: 2728px) {
+  :root {
+    --row-number: 12;
+  }
+}

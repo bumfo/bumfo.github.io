@@ -1,0 +1,46 @@
+$container-padding: 8px;
+
+$card-min-width: 210px;
+$card-height: 140px;
+$card-margin: 8px;
+$card-padding: 8px;
+
+body {
+  margin: 0;
+  font: 13px helvetica, sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  padding: $container-padding;
+
+  > div {
+    box-sizing: border-box;
+
+    /*flex: 1 0 250px;*/
+    flex: 0 0 calc(100% / var(--row-number) - #{$card-margin} * 2);
+    height: $card-height;
+    margin: $card-margin;
+    padding: $card-padding;
+
+    border-radius: 3px;
+    border: 1px solid #dfe1e5;
+    background: #fff;
+    color: #5f6368;
+
+    // box-shadow: 0 1px 1px 0 rgba(60,64,67,.08), 0 1px 3px 1px rgba(60,64,67,.16);
+  }
+}
+
+:root {
+  --row-number: 1;
+
+  @for $i from 2 through 12 {
+    @media (min-width: $container-padding * 2 + ($card-min-width + $card-margin * 2) * $i) {
+      --row-number: #{$i};
+    }
+  }
+}
