@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<title>tip</title>
+
+<style>
+  u {
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+  }
+</style>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<script>
+  var wrong = /\b(?:dolor)\b/g;
+  var p = document.querySelector('p');
+
+  var text = p.textContent;
+
+  var p2 = document.createElement('p');
+
+  function wavy(x) {
+    var y = document.createElement('u');
+    y.textContent = x;
+    y.title = 'Hello World';
+    return y;
+  }
+
+  function debug(x) {
+    console.log(x);
+    return x;
+  }
+
+  var result;
+  var j = 0;
+  while ((result = wrong.exec(text)) !== null) {
+    var m = result[0];
+    var i = result.index;
+
+    p2.appendChild(document.createTextNode(debug(text.substring(j, i))));
+    p2.appendChild(wavy(debug(m)));
+
+    j = i + m.length;
+  }
+  p2.appendChild(document.createTextNode(debug(text.substring(j))));
+
+  p.parentNode.replaceChild(p2, p);
+
+</script>
