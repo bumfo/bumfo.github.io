@@ -1,7 +1,15 @@
 <!DOCTYPE html>
+<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
 <title>tip</title>
 
 <style>
+  html {
+    font: 16px/24px "Segoe UI", helvetica, sans-serif;
+  }
+  body {
+    margin: 32px;
+  }
   u {
     text-decoration-line: underline;
     text-decoration-style: wavy;
@@ -17,10 +25,122 @@
 
   var p2 = document.createElement('p');
 
-  function wavy(x) {
+  function throttle(f, t) {
+    var d = null;
+    return function () {
+      if (d === null) {
+        d = setTimeout(function () {
+          d = null;
+          f();
+        }, t);
+      }
+    }
+  }
+
+  function cancelableThrottle(f, t) {
+    var d = null;
+
+    function call() {
+      if (d === null) {
+        d = setTimeout(function () {
+          d = null;
+          f();
+        }, t);
+      }
+    }
+
+    function cancel() {
+      clearTimeout(d);
+      d = null;
+    }
+
+    call.cancel = cancel;
+
+    return call;
+  }
+
+  function Tip() {
+    var tip = document.createElement('div');
+    tip.style = 'position: absolute; background: #eee; border: 1px solid #ddd';
+    document.body.appendChild(tip);
+
+    function show(content, el) {
+      var box = el.getBoundingClientRect();
+      var x = box.x + box.width / 2;
+      var y = box.y + box.height;
+
+      tip.style.display = 'block';
+      tip.textContent = content;
+
+      var rect = tip.getBoundingClientRect();
+
+      var xx = x - rect.width / 2;
+      var yy = y;
+
+      if (xx < 8) {
+        xx = 8;
+      }
+      if (yy < 8) {
+        yy = 8;
+      }
+
+      tip.style.left = xx + 'px';
+      tip.style.top = yy + 'px';
+    }
+
+    function hide() {
+      tip.style.display = 'none';
+    }
+
+    return {
+      'show': show,
+      'hide': hide,
+    }
+  }
+
+  var tip = Tip();
+
+  function TipControl(el, title) {
+    var shown = false;
+
+    function show() {
+      tip.show(title, el);
+      shown = true;
+    }
+
+    function hide() {
+      tip.hide();
+      shown = false;
+    }
+
+    var d = null;
+
+    show = cancelableThrottle(show, 300);
+    hide = cancelableThrottle(hide, 300);
+
+    el.addEventListener('mousemove', function (e) {
+      hide.cancel();
+
+      if (!shown) {
+        show();
+      }
+    });
+
+    el.addEventListener('mouseout', function (e) {
+      show.cancel();
+
+      if (shown) {
+        hide();
+      }
+    });
+  }
+
+  function Wavy(x) {
     var y = document.createElement('u');
     y.textContent = x;
-    y.title = 'Hello World';
+
+    TipControl(y, 'Hello World');
+
     return y;
   }
 
@@ -36,7 +156,7 @@
     var i = result.index;
 
     p2.appendChild(document.createTextNode(debug(text.substring(j, i))));
-    p2.appendChild(wavy(debug(m)));
+    p2.appendChild(Wavy(debug(m)));
 
     j = i + m.length;
   }
