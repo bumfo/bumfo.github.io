@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chinese Chess (Xiangqi) with Improved AI and Dang Tou Pao Response</title>
+  <title>Chinese Chess with Improved AI, Dang Tou Pao, Undo, and Move History</title>
   <style>
     body {
       font-family: sans-serif;
@@ -48,24 +48,43 @@
     }
     .red { background: #c00; }
     .black { background: #333; }
+    /* Styles for the undo button and move history log */
+    #undoButton {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+    #moveHistory {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 10px auto;
+      width: 540px;
+      background: #fff;
+      border: 1px solid #ccc;
+      text-align: left;
+      padding: 8px;
+    }
+    .red-move { color: #c00; }
+    .black-move { color: #333; }
   </style>
 </head>
 <body>
   <h1>Chinese Chess</h1>
   <p>Your side is red. Click a red piece to show its legal moves.</p>
   <div id="board"></div>
+  <button id="undoButton">Undo</button>
+  <h2>Move History</h2>
+  <div id="moveHistory"></div>
   <script>
     // -------------------------------
     // Global game variables
     // -------------------------------
-    let board = [];         // 10×9 board array; each cell is either null or {type, side}
-    let selected = null;    // When a user selects a piece: {r, c, moves: [[r2, c2], …]}
-    let currentTurn = 'red';// red (user) starts; black is AI
+    let board = [];         // 10×9 board; each cell is either null or {type, side}
+    let selected = null;    // When a user selects a piece: {r, c, moves: [...]}
+    let currentTurn = 'red';// red (user) starts; then AI (black) moves
     let gameOver = false;
     
-    // New globals to detect Dang Tou Pao opening.
-    // If red’s first move is a cannon move from its starting position,
-    // we set dangTouPaoResponsePending = true and record which cannon moved.
+    // For handling the Dang Tou Pao opening response.
     let dangTouPaoResponsePending = false;
     let dangTouPaoType = "";  // "left" if red moved the left cannon (from (7,1)),
                               // "right" if red moved the right cannon (from (7,7)).
@@ -93,7 +112,6 @@
     };
 
     // Piece values used by the AI.
-    // Note: Cannon is now worth 6 (slightly more than horse at 5).
     const pieceValue = {
       general: 1000,
       advisor: 2,
@@ -105,9 +123,96 @@
     };
 
     // -------------------------------
-    // Initialization and rendering
+    // History for Undo – unlimited move recall.
     // -------------------------------
-    // Initialize board state with the standard Xiangqi starting position.
+    // Each history entry stores a snapshot of board and key flags.
+    let historyStack = [];
+    function pushState() {
+      historyStack.push({
+        board: copyBoard(board),
+        currentTurn: currentTurn,
+        gameOver: gameOver,
+        dangTouPaoResponsePending: dangTouPaoResponsePending,
+        dangTouPaoType: dangTouPaoType
+      });
+    }
+
+    // -------------------------------
+    // Move History Logging (for display)
+    // -------------------------------
+    let moveHistory = [];
+    function recordMove(from, to, piece) {
+      moveHistory.push({
+        side: piece.side,
+        piece: piece.type,
+        from: { r: from[0], c: from[1] },
+        to: { r: to[0], c: to[1] }
+      });
+      updateMoveHistory();
+    }
+    function updateMoveHistory() {
+      const historyDiv = document.getElementById("moveHistory");
+      historyDiv.innerHTML = "";
+      moveHistory.forEach((move, index) => {
+        const moveDiv = document.createElement("div");
+        moveDiv.className = move.side + "-move";
+        moveDiv.textContent = (index + 1) + ". " +
+          (move.side === "red" ? "Red " : "Black ") +
+          pieceLabels[move.side][move.piece] +
+          " from (" + move.from.r + "," + move.from.c +
+          ") to (" + move.to.r + "," + move.to.c + ")";
+        historyDiv.appendChild(moveDiv);
+      });
+    }
+    function removeLastMoves(count) {
+      for (let i = 0; i < count; i++) {
+        moveHistory.pop();
+      }
+      updateMoveHistory();
+    }
+
+    // -------------------------------
+    // Undo Function
+    // -------------------------------
+    // Undo always restores a state where red is about to move.
+    // If the current history state (top of stack) has currentTurn === 'black'
+    // then the last move was red’s and we undo one move.
+    // If it has currentTurn === 'red' (i.e. after a full pair of moves),
+    // then we undo two moves.
+    function undoMove() {
+      if (historyStack.length <= 1) {
+        alert("No more moves to undo.");
+        return;
+      }
+      if (currentTurn === 'black') {
+        // Last move was red’s move (red moved, then turn became black).
+        historyStack.pop();
+        removeLastMoves(1);
+      } else if (currentTurn === 'red') {
+        // Last move was AI’s move; undo both the AI move and the preceding red move.
+        if (historyStack.length < 3) {
+          alert("No more moves to undo.");
+          return;
+        }
+        historyStack.pop();
+        removeLastMoves(1);
+        historyStack.pop();
+        removeLastMoves(1);
+      }
+      let prevState = historyStack[historyStack.length - 1];
+      board = copyBoard(prevState.board);
+      currentTurn = prevState.currentTurn;
+      gameOver = prevState.gameOver;
+      dangTouPaoResponsePending = prevState.dangTouPaoResponsePending;
+      dangTouPaoType = prevState.dangTouPaoType;
+      selected = null;
+      renderBoard();
+    }
+    document.getElementById('undoButton').addEventListener('click', undoMove);
+
+    // -------------------------------
+    // Initialization and Rendering
+    // -------------------------------
     function initBoard() {
       board = new Array(10);
       for (let r = 0; r < 10; r++) {
@@ -148,22 +253,20 @@
       board[6][4] = { type: 'soldier', side: 'red' };
       board[6][6] = { type: 'soldier', side: 'red' };
       board[6][8] = { type: 'soldier', side: 'red' };
-    }
 
-    // Render the board and pieces.
+      pushState(); // Save the initial state.
+    }
     function renderBoard() {
       const boardDiv = document.getElementById('board');
-      boardDiv.innerHTML = ''; // Clear all cells
+      boardDiv.innerHTML = ''; // Clear board
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           const cell = document.createElement('div');
           cell.className = 'cell';
           cell.dataset.r = r;
           cell.dataset.c = c;
-          // Highlight legal moves for the selected piece.
-          if (selected && selected.moves.some(m => m[0] === r && m[1] === c)) {
+          if (selected && selected.moves.some(m => m[0] === r && m[1] === c))
             cell.classList.add('highlight');
-          }
           const piece = board[r][c];
           if (piece) {
             const pieceDiv = document.createElement('div');
@@ -175,15 +278,12 @@
         }
       }
     }
-
-    // Returns true if the given side has at least one legal move.
     function hasLegalMoves(side) {
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           if (board[r][c] && board[r][c].side === side) {
-            if (getLegalMoves(board, r, c).length > 0) {
+            if (getLegalMoves(board, r, c).length > 0)
               return true;
-            }
           }
         }
       }
@@ -201,21 +301,16 @@
         return;
       }
       let cellDiv = e.target;
-      if (!cellDiv.classList.contains('cell')) {
+      if (!cellDiv.classList.contains('cell'))
         cellDiv = cellDiv.parentElement;
-      }
       const r = parseInt(cellDiv.dataset.r);
       const c = parseInt(cellDiv.dataset.c);
       handleCellClick(r, c);
     });
-
     function handleCellClick(r, c) {
       const piece = board[r][c];
-      // If a piece is already selected and the clicked cell is a legal destination...
       if (selected && selected.moves.some(m => m[0] === r && m[1] === c)) {
-        // --- For red's move, check if it is a Dang Tou Pao move.
-        // If red moves a cannon from its starting position (7,1) or (7,7),
-        // mark that a classic response is pending.
+        // For red cannon from starting position, flag Dang Tou Pao response.
         if (selected.r === 7 && board[selected.r][selected.c].type === 'cannon') {
           if (selected.c === 1) {
             dangTouPaoResponsePending = true;
@@ -225,7 +320,12 @@
             dangTouPaoType = "right";
           }
         }
+        let movingPiece = board[selected.r][selected.c];
+        recordMove([selected.r, selected.c], [r, c], movingPiece);
         movePiece(selected.r, selected.c, r, c);
+        // Update turn before saving state.
+        currentTurn = 'black';
+        pushState();
         selected = null;
         renderBoard();
         if (checkGameOver()) return;
@@ -234,11 +334,9 @@
           gameOver = true;
           return;
         }
-        currentTurn = 'black';
         setTimeout(aiMove, 500);
         return;
       }
-      // If the user clicks on a red piece, select it.
       if (piece && piece.side === 'red') {
         selected = { r: r, c: c, moves: getLegalMoves(board, r, c) };
         renderBoard();
@@ -247,14 +345,10 @@
         renderBoard();
       }
     }
-
-    // Moves a piece from (r1, c1) to (r2, c2)
     function movePiece(r1, c1, r2, c2) {
       board[r2][c2] = board[r1][c1];
       board[r1][c1] = null;
     }
-
-    // Checks for game over by ensuring both generals remain on the board.
     function checkGameOver() {
       let redGeneral = false, blackGeneral = false;
       for (let r = 0; r < 10; r++) {
@@ -280,35 +374,33 @@
     }
 
     // -------------------------------
-    // AI Move with Modern Search (Negamax with Alpha–Beta, Iterative Deepening, and a Transposition Table)
+    // AI Move with Modern Search
     // -------------------------------
-    // The AI first checks for a hard‑coded Dang Tou Pao response.
     function aiMove() {
       if (gameOver || currentTurn !== 'black') return;
-      
-      // Check for a hard‑coded Dang Tou Pao response.
       if (dangTouPaoResponsePending) {
-        // For example:
-        //   If red moved the left cannon (from (7,1)), respond with moving the right black horse
-        //   from (0,7) to (2,6) ("馬八進七").
-        //   If red moved the right cannon (from (7,7)), respond with moving the left black horse
-        //   from (0,1) to (2,2) ("馬二進三").
         if (dangTouPaoType === "left") {
           if (getLegalMoves(board, 0, 7).some(m => m[0] === 2 && m[1] === 6)) {
-            movePiece(0, 7, 2, 6);
-            console.log("AI hard-coded response: Moving horse from (0,7) to (2,6) in response to Dang Tou Pao.");
+            let movingPiece = board[0][7];
+            recordMove([0,7], [2,6], movingPiece);
+            movePiece(0,7,2,6);
+            console.log("AI hard-coded response: Moving horse from (0,7) to (2,6).");
           } else {
             console.log("Hard-coded move not legal; falling back to search.");
           }
         } else if (dangTouPaoType === "right") {
           if (getLegalMoves(board, 0, 1).some(m => m[0] === 2 && m[1] === 2)) {
-            movePiece(0, 1, 2, 2);
-            console.log("AI hard-coded response: Moving horse from (0,1) to (2,2) in response to Dang Tou Pao.");
+            let movingPiece = board[0][1];
+            recordMove([0,1], [2,2], movingPiece);
+            movePiece(0,1,2,2);
+            console.log("AI hard-coded response: Moving horse from (0,1) to (2,2).");
           } else {
             console.log("Hard-coded move not legal; falling back to search.");
           }
         }
         dangTouPaoResponsePending = false;
+        currentTurn = 'red';
+        pushState();
         renderBoard();
         if (checkGameOver()) return;
         if (!hasLegalMoves('red')) {
@@ -316,12 +408,8 @@
           gameOver = true;
           return;
         }
-        currentTurn = 'red';
         return;
       }
-      
-      // Otherwise, use our modern search.
-      // (You can adjust maxDepth – higher values yield stronger play but take more time.)
       const maxDepth = 3;
       let bestMove = iterativeDeepening(board, maxDepth, 'black');
       if (!bestMove) {
@@ -329,7 +417,11 @@
         gameOver = true;
         return;
       }
+      let movingPiece = board[bestMove.from[0]][bestMove.from[1]];
+      recordMove(bestMove.from, bestMove.to, movingPiece);
       movePiece(bestMove.from[0], bestMove.from[1], bestMove.to[0], bestMove.to[1]);
+      currentTurn = 'red';
+      pushState();
       renderBoard();
       if (checkGameOver()) return;
       if (!hasLegalMoves('red')) {
@@ -337,92 +429,63 @@
         gameOver = true;
         return;
       }
-      currentTurn = 'red';
     }
 
     // -------------------------------
-    // Evaluation and Search Helpers
+    // Evaluation and Search Helpers (Negamax with Alpha–Beta, Iterative Deepening)
     // -------------------------------
-    // boardEvaluation: evaluates the board from black's perspective.
-    // (Positive values favor black, negative favor red.)
     function boardEvaluation(bd) {
       let score = 0;
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           if (bd[r][c]) {
             let val = pieceValue[bd[r][c].type] || 0;
-            if (bd[r][c].side === 'black') {
-              score += val;
-            } else {
-              score -= val;
-            }
+            score += (bd[r][c].side === 'black') ? val : -val;
           }
         }
       }
-      if (isInCheck(bd, 'red')) {
-        score += 3;
-      }
+      if (isInCheck(bd, 'red')) score += 3;
       return score;
     }
-
-    // (The old evaluateMove function has been removed in favor of a full search.)
-
-    // -------------------------------
-    // Transposition Table and Negamax Search
-    // -------------------------------
-    let transpositionTable = {};  // Global cache for board positions
-
-    // Returns true if the given side’s general exists on board bd.
+    let transpositionTable = {};
     function hasGeneral(bd, side) {
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
-          if (bd[r][c] && bd[r][c].side === side && bd[r][c].type === 'general') {
+          if (bd[r][c] && bd[r][c].side === side && bd[r][c].type === 'general')
             return true;
-          }
         }
       }
       return false;
     }
-
-    // Terminal test: returns true if one general is missing.
     function isTerminal(bd) {
       return (!hasGeneral(bd, 'red') || !hasGeneral(bd, 'black'));
     }
-
-    // A simple board hash function used for the transposition table.
     function getBoardHash(bd) {
       let hash = "";
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
-          if (!bd[r][c]) {
-            hash += ".";
-          } else {
+          if (!bd[r][c]) hash += ".";
+          else {
             let p = bd[r][c];
-            // For example, "Rch" for a red chariot. Here we use side initial and the first letter of type.
             hash += (p.side === 'red' ? 'R' : 'B') + p.type.charAt(0);
           }
         }
       }
       return hash;
     }
-
-    // Negamax search with alpha–beta pruning.
-    // The evaluation is always returned from black’s perspective.
     function negamax(bd, depth, alpha, beta, side) {
       const hash = getBoardHash(bd);
-      if (transpositionTable[hash] && transpositionTable[hash].depth >= depth) {
+      if (transpositionTable[hash] && transpositionTable[hash].depth >= depth)
         return transpositionTable[hash].value;
-      }
       if (depth === 0 || isTerminal(bd)) {
         if (isTerminal(bd)) {
-          if (!hasGeneral(bd, 'red')) return Infinity;   // win for black
-          if (!hasGeneral(bd, 'black')) return -Infinity; // loss for black
+          if (!hasGeneral(bd, 'red')) return Infinity;
+          if (!hasGeneral(bd, 'black')) return -Infinity;
         }
         return (side === 'black' ? boardEvaluation(bd) : -boardEvaluation(bd));
       }
       let bestValue = -Infinity;
       let legalMoves = [];
-      // Generate all legal moves for the current side.
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           if (bd[r][c] && bd[r][c].side === side) {
@@ -433,11 +496,8 @@
           }
         }
       }
-      if (legalMoves.length === 0) {
-        // No legal moves: return static evaluation.
+      if (legalMoves.length === 0)
         return (side === 'black' ? boardEvaluation(bd) : -boardEvaluation(bd));
-      }
-      // Order moves: simple ordering that prefers captures.
       legalMoves.sort((a, b) => {
         const aTarget = bd[a.to[0]][a.to[1]];
         const bTarget = bd[b.to[0]][b.to[1]];
@@ -450,17 +510,13 @@
         newBoard[move.to[0]][move.to[1]] = newBoard[move.from[0]][move.from[1]];
         newBoard[move.from[0]][move.from[1]] = null;
         const value = -negamax(newBoard, depth - 1, -beta, -alpha, side === 'black' ? 'red' : 'black');
-        if (value > bestValue) {
-          bestValue = value;
-        }
+        bestValue = Math.max(bestValue, value);
         alpha = Math.max(alpha, value);
-        if (alpha >= beta) break;  // beta cutoff
+        if (alpha >= beta) break;
       }
       transpositionTable[hash] = { value: bestValue, depth: depth };
       return bestValue;
     }
-
-    // At the root (for the AI’s turn), search among all moves and pick the best.
     function searchRoot(bd, depth, side) {
       let legalMoves = [];
       for (let r = 0; r < 10; r++) {
@@ -474,7 +530,6 @@
         }
       }
       if (legalMoves.length === 0) return null;
-      // Order moves.
       legalMoves.sort((a, b) => {
         const aTarget = bd[a.to[0]][a.to[1]];
         const bTarget = bd[b.to[0]][b.to[1]];
@@ -496,11 +551,9 @@
       }
       return bestMove;
     }
-
-    // Iterative deepening: gradually increase the search depth.
     function iterativeDeepening(bd, maxDepth, side) {
       let bestMove = null;
-      transpositionTable = {}; // Clear the table for each full search.
+      transpositionTable = {}; // clear table for each search
       for (let depth = 1; depth <= maxDepth; depth++) {
         const move = searchRoot(bd, depth, side);
         if (move) {
@@ -517,12 +570,9 @@
     function isInBounds(r, c) {
       return r >= 0 && r < 10 && c >= 0 && c < 9;
     }
-
     function copyBoard(bd) {
       return bd.map(row => row.map(cell => cell ? { type: cell.type, side: cell.side } : null));
     }
-
-    // Enforce the “flying general” rule.
     function generalsFacing(bd) {
       let redPos = null, blackPos = null;
       for (let r = 0; r < 10; r++) {
@@ -545,8 +595,6 @@
       }
       return false;
     }
-
-    // Check detection: determines if the given side’s general is under attack.
     function isInCheck(bd, side) {
       let genPos = null;
       for (let r = 0; r < 10; r++) {
@@ -565,17 +613,13 @@
           if (p && p.side !== side) {
             const moves = getCandidateMoves(bd, r, c);
             for (let m of moves) {
-              if (m[0] === genPos[0] && m[1] === genPos[1]) {
-                return true;
-              }
+              if (m[0] === genPos[0] && m[1] === genPos[1]) return true;
             }
           }
         }
       }
       return false;
     }
-
-    // Generate candidate moves based solely on a piece's movement rules.
     function getCandidateMoves(bd, r, c) {
       const piece = bd[r][c];
       if (!piece) return [];
@@ -658,7 +702,6 @@
         const directions = [[-1,0],[1,0],[0,-1],[0,1]];
         for (let d of directions) {
           let nr = r, nc = c;
-          // Non-capturing moves.
           while (true) {
             nr += d[0]; nc += d[1];
             if (!isInBounds(nr, nc)) break;
@@ -668,21 +711,16 @@
               break;
             }
           }
-          // Capturing moves.
           nr = r; nc = c;
           let jumped = false;
           while (true) {
             nr += d[0]; nc += d[1];
             if (!isInBounds(nr, nc)) break;
             if (!jumped) {
-              if (bd[nr][nc] !== null) {
-                jumped = true;
-              }
+              if (bd[nr][nc] !== null) jumped = true;
             } else {
               if (bd[nr][nc] !== null) {
-                if (bd[nr][nc].side !== side) {
-                  moves.push([nr, nc]);
-                }
+                if (bd[nr][nc].side !== side) moves.push([nr, nc]);
                 break;
               }
             }
@@ -705,8 +743,6 @@
       }
       return moves;
     }
-
-    // Generate legal moves by filtering candidate moves that would leave the mover's general in check or violate the flying general rule.
     function getLegalMoves(bd, r, c) {
       const piece = bd[r][c];
       if (!piece) return [];
@@ -716,9 +752,8 @@
         const boardCopy = copyBoard(bd);
         boardCopy[m[0]][m[1]] = boardCopy[r][c];
         boardCopy[r][c] = null;
-        if (!generalsFacing(boardCopy) && !isInCheck(boardCopy, piece.side)) {
+        if (!generalsFacing(boardCopy) && !isInCheck(boardCopy, piece.side))
           legalMoves.push(m);
-        }
       }
       return legalMoves;
     }
