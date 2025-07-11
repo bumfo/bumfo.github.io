@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Orthographic Globe – HiDPI ready</title>
+<style>
+  body   {display:flex;height:100vh;align-items:center;justify-content:center;background:#f9f9f9;}
+  canvas {background:transparent;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+</style>
+</head>
+<body>
+<canvas id="globe"></canvas>
+
+<script>
+(() => {
+  /* ---------- HiDPI setup ---------- */
+  const CSS_SIZE = 400;                          // logical pixels on the page
+  const DPR      = window.devicePixelRatio || 1; // e.g. 2 on Retina
+
+  const canvas = document.getElementById('globe');
+  canvas.style.width  = `${CSS_SIZE}px`;         // CSS size stays 400×400
+  canvas.style.height = `${CSS_SIZE}px`;
+  canvas.width  = CSS_SIZE * DPR;                // real framebuffer size
+  canvas.height = CSS_SIZE * DPR;
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);                           // everything after this is in CSS pixels
+
+  /* ---------- geometry & styling ---------- */
+  const W  = CSS_SIZE, H = CSS_SIZE;
+  const cx = W / 2,    cy = H / 2;
+
+  const R             = W * 0.4;   // opaque core sphere (CSS px)
+  const tubeThickness = 12;        // hoop thickness (same unit)
+  const tubeRadius    = R + tubeThickness / 2;   // where hoops live
+
+  /* ---------- animation ---------- */
+  let angleY = 0;
+  const speed = 0.008;             // rad / frame
+
+  /* ---------- build meridians + single equator ---------- */
+  const meridianCount = 6;
+  const rings = [];
+
+  // meridians
+  for (let m = 0; m < meridianCount; m++) {
+    const lon = m * Math.PI * 2 / meridianCount;
+    const path = [];
+    for (let t = 0; t <= 64; t++) {
+      const lat = -Math.PI / 2 + Math.PI * t / 64;
+      path.push([
+        Math.cos(lat) * Math.cos(lon),
+        Math.sin(lat),
+        Math.cos(lat) * Math.sin(lon)
+      ]);
+    }
+    rings.push(path);
+  }
+
+  // equator
+  {
+    const path = [];
+    for (let t = 0; t <= 64; t++) {
+      const lon = t * Math.PI * 2 / 64;
+      path.push([Math.cos(lon), 0, Math.sin(lon)]);
+    }
+    rings.push(path);
+  }
+
+  /* ---------- helpers ---------- */
+  function rotateAndProject([x, y, z]) {
+    const xr =  x * Math.cos(angleY) + z * Math.sin(angleY);
+    const zr = -x * Math.sin(angleY) + z * Math.cos(angleY);
+    return { x2d: cx + xr * tubeRadius, y2d: cy + y * tubeRadius, zr };
+  }
+
+  /* ---------- draw loop ---------- */
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    /* 0) opaque white globe core */
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+
+    /* 1) rotating hoops (front hemisphere only) */
+    ctx.lineWidth   = tubeThickness;
+    ctx.strokeStyle = '#333';
+    ctx.lineCap     = 'round';
+
+    rings.forEach(path => {
+      let drawing = false;
+      ctx.beginPath();
+
+      path.forEach(pt => {
+        const { x2d, y2d, zr } = rotateAndProject(pt);
+        if (zr >= 0) {                      // front side
+          if (!drawing) { ctx.moveTo(x2d, y2d); drawing = true; }
+          else          { ctx.lineTo(x2d, y2d); }
+        } else {
+          drawing = false;                  // break on back side
+        }
+      });
+
+      ctx.stroke();
+    });
+
+    /* 2) static outer hoop (matches rotating ones) */
+    ctx.beginPath();
+    ctx.arc(cx, cy, tubeRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    angleY += speed;
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+</script>
+</body>
+</html>
