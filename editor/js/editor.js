@@ -11,7 +11,7 @@ class Editor {
 
         // Initialize managers
         this.stateManager = new StateManager();
-        this.blockManager = new BlockManager(editorElement, this.stateManager);
+        this.blockManager = new BlockManager(editorElement, this.stateManager, this.caretTracker);
         this.historyManager = new HistoryManager(this.stateManager, this.caretTracker);
         this.contentManager = new ContentManager(this.stateManager, this.caretTracker);
 
@@ -244,7 +244,31 @@ class Editor {
     handleEnter(e) {
         if (!e.shiftKey) {
             e.preventDefault();
-            // TODO: Implement block splitting
+            
+            const range = Carets.getCurrentRange();
+            if (!range || !range.collapsed) return;
+
+            const block = this.blockManager.getBlockForNode(range.startContainer);
+            if (!block) return;
+
+            try {
+                // Get text offset within the block
+                const logicalPos = this.caretTracker.getLogicalPosition(range.startContainer, range.startOffset);
+                const textOffset = logicalPos.offset;
+
+                // Check if we're at the end of the block for fast path
+                const isAtEnd = textOffset >= block.textContent.length;
+
+                if (isAtEnd) {
+                    // Fast path: insert new block after current
+                    this.blockManager.insertBlockAfter(block);
+                } else {
+                    // Regular split at cursor position
+                    this.blockManager.splitBlock(block, textOffset);
+                }
+            } catch (error) {
+                console.warn('Failed to handle Enter:', error);
+            }
         }
     }
 
@@ -281,8 +305,21 @@ class Editor {
             // If not a paragraph, convert to paragraph
             if (block.tagName !== 'P') {
                 this.blockManager.formatBlock(block, 'P');
+                return;
             }
-            // TODO: Implement block merging with previous block
+
+            // If it's a paragraph, merge or delete
+            const previousBlock = block.previousElementSibling;
+            if (previousBlock) {
+                const blockText = block.innerText;
+                if (blockText === '' || blockText === '\n') {
+                    // If current block is empty, just delete it (caret handled by mutation)
+                    this.blockManager.deleteBlock(block);
+                } else {
+                    // Merge with previous block (caret handled by mutation)
+                    this.blockManager.mergeWithPrevious(block);
+                }
+            }
         }
     }
 
@@ -307,7 +344,18 @@ class Editor {
         // Check if at block end
         if (BlockText.isAtBlockEnd(range)) {
             e.preventDefault();
-            // TODO: Implement block merging with next block
+            
+            const nextBlock = block.nextElementSibling;
+            if (nextBlock) {
+                const nextBlockText = nextBlock.innerText;
+                if (nextBlockText === '' || nextBlockText === '\n') {
+                    // If next block is empty, just delete it
+                    this.blockManager.deleteBlock(nextBlock);
+                } else {
+                    // Merge next block into current
+                    this.blockManager.mergeBlocks(block, nextBlock);
+                }
+            }
         }
     }
 
@@ -425,7 +473,12 @@ class Editor {
 document.addEventListener('DOMContentLoaded', () => {
     const editorElement = document.getElementById('editor');
     if (editorElement) {
-        window.editor = new Editor(editorElement);
-        console.log('Editor initialized', window.editor.getStats());
+        const editor = new Editor(editorElement);
+        console.log('Editor initialized', editor.getStats());
+        
+        // Optional: expose editor for debugging (can be removed in production)
+        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+            window.editor = editor;
+        }
     }
 });

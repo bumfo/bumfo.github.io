@@ -2,9 +2,10 @@
  * Block Manager - Handles block-level operations for the editor
  */
 class BlockManager {
-    constructor(editorElement, stateManager) {
+    constructor(editorElement, stateManager, caretTracker) {
         this.editor = editorElement;
         this.stateManager = stateManager;
+        this.caretTracker = caretTracker;
         this.registerHandlers();
     }
 
@@ -66,7 +67,7 @@ class BlockManager {
         // Split block handler
         this.stateManager.registerHandler('splitBlock', {
             apply: (mutation) => {
-                const { block, splitOffset, newBlockTag } = mutation;
+                const { block, splitOffset, newBlockTag, atEnd, appendContent } = mutation;
 
                 // Store block index for caret tracking
                 const blocks = Array.from(this.editor.children);
@@ -78,16 +79,23 @@ class BlockManager {
                 // Store references for revert
                 mutation.newBlock = newBlock;
                 mutation.originalTextContent = block.textContent;
-                mutation.splitOffset = splitOffset;
 
-                // Split the text content
-                const textContent = block.textContent;
-                const beforeText = textContent.substring(0, splitOffset);
-                const afterText = textContent.substring(splitOffset);
+                if (atEnd) {
+                    // Fast path: assume split at end, create new block with optional content
+                    newBlock.textContent = appendContent || '';
+                } else {
+                    // Regular split path
+                    mutation.splitOffset = splitOffset;
 
-                // Update original block
-                block.textContent = beforeText;
-                newBlock.textContent = afterText;
+                    // Split the text content
+                    const textContent = block.textContent;
+                    const beforeText = textContent.substring(0, splitOffset);
+                    const afterText = textContent.substring(splitOffset);
+
+                    // Update original block
+                    block.textContent = beforeText;
+                    newBlock.textContent = (appendContent || '') + afterText;
+                }
 
                 // Insert new block after original
                 block.parentNode.insertBefore(newBlock, block.nextSibling);
@@ -98,13 +106,49 @@ class BlockManager {
             },
 
             revert: (mutation) => {
-                const { block, newBlock, originalTextContent } = mutation;
+                const { block, newBlock, originalTextContent, atEnd } = mutation;
 
                 // Remove the new block
                 newBlock.remove();
 
-                // Restore original text content
-                block.textContent = originalTextContent;
+                if (!atEnd) {
+                    // Restore original text content only if we actually split
+                    block.textContent = originalTextContent;
+                }
+            },
+        });
+
+        // Delete block handler (just remove block)
+        this.stateManager.registerHandler('deleteBlock', {
+            apply: (mutation) => {
+                const { block } = mutation;
+
+                // Store position info for revert and caret tracking
+                mutation.parent = block.parentNode;
+                mutation.nextSibling = block.nextSibling;
+                mutation.deletedBlock = block;
+
+                // Store caret state for positioning at end of previous block
+                const previousBlock = block.previousElementSibling;
+                if (previousBlock) {
+                    const blocks = Array.from(this.editor.children);
+                    const prevBlockIndex = blocks.indexOf(previousBlock);
+                    mutation.caretStateAfter = CaretState.collapsed(prevBlockIndex, previousBlock.textContent.length);
+                }
+                
+                block.remove();
+
+                // Restore caret to end of previous block
+                if (mutation.caretStateAfter && this.caretTracker) {
+                    this.caretTracker.restoreCaretState(mutation.caretStateAfter);
+                }
+            },
+
+            revert: (mutation) => {
+                const { deletedBlock, parent, nextSibling } = mutation;
+
+                // Re-insert the deleted block DOM element at original position
+                parent.insertBefore(deletedBlock, nextSibling);
             },
         });
 
@@ -134,9 +178,8 @@ class BlockManager {
                 secondBlock.remove();
 
                 // Restore caret to merge point immediately after DOM changes
-                const caretTracker = window.editor?.caretTracker;
-                if (caretTracker) {
-                    caretTracker.restoreCaretState(mutation.caretStateAfter);
+                if (this.caretTracker) {
+                    this.caretTracker.restoreCaretState(mutation.caretStateAfter);
                 }
             },
 
@@ -280,6 +323,44 @@ class BlockManager {
             return block.nextElementSibling;
         }
         return null;
+    }
+
+    /**
+     * Insert a new block after specified block (split at end with optional content)
+     * @param {Element} block - The block to insert after
+     * @param {string} content - Optional content for new block
+     * @param {string} newBlockTag - Optional tag for new block (defaults to same as original)
+     * @returns {Element|null} The new block created
+     */
+    insertBlockAfter(block, content = '', newBlockTag = null) {
+        if (!this.isBlock(block)) return null;
+
+        const success = this.stateManager.commit({
+            type: 'splitBlock',
+            block: block,
+            atEnd: true,
+            appendContent: content,
+            newBlockTag: newBlockTag,
+        });
+
+        if (success) {
+            return block.nextElementSibling;
+        }
+        return null;
+    }
+
+    /**
+     * Delete a block (just removes it, merging handled separately)
+     * @param {Element} block - The block to delete
+     * @returns {boolean} Whether the deletion was successful
+     */
+    deleteBlock(block) {
+        if (!this.isBlock(block)) return false;
+
+        return this.stateManager.commit({
+            type: 'deleteBlock',
+            block: block,
+        });
     }
 
     /**
