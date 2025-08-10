@@ -7,12 +7,11 @@ class HistoryManager {
         this.stateManager = stateManager;
         this.selectionManager = selectionManager;
         this.historyStack = [];
-        this.currentIndex = -1;
         this.isPerformingHistoryAction = false;
-        
+
         // Create hidden contenteditable for browser undo/redo integration
         this.createHiddenTracker();
-        
+
         // Listen to state changes
         this.stateManager.addChangeListener(this.onStateChange.bind(this));
     }
@@ -35,11 +34,18 @@ class HistoryManager {
         `;
         this.tracker.setAttribute('aria-hidden', 'true');
         document.body.appendChild(this.tracker);
-        
+
         // Listen to input events for undo/redo
         this.tracker.addEventListener('beforeinput', this.onBeforeInput.bind(this));
         this.tracker.addEventListener('input', this.onInput.bind(this));
         this.tracker.addEventListener('focus', this.onTrackerFocus.bind(this));
+    }
+
+    /**
+     * Read current index from DOM tracker (0 if empty)
+     */
+    currentIndex() {
+        return this.tracker.innerText | 0;
     }
 
     /**
@@ -48,7 +54,7 @@ class HistoryManager {
     onStateChange(change, action) {
         // Ignore changes during history operations
         if (this.isPerformingHistoryAction) return;
-        
+
         if (action === 'apply') {
             this.pushChange(change);
         }
@@ -58,14 +64,16 @@ class HistoryManager {
      * Push a change to the history stack
      */
     pushChange(change) {
+        // Get current index from DOM (0 if empty)
+        const currentIndex = this.currentIndex();
+
         // Remove any changes after current index (for branching history)
-        if (this.currentIndex < this.historyStack.length - 1) {
-            this.historyStack = this.historyStack.slice(0, this.currentIndex + 1);
+        if (currentIndex < this.historyStack.length) {
+            this.historyStack = this.historyStack.slice(0, currentIndex);
         }
-        
+
         this.historyStack.push(change);
-        this.currentIndex++;
-        
+
         // Update hidden tracker
         this.updateTracker();
     }
@@ -74,19 +82,19 @@ class HistoryManager {
      * Update the hidden tracker element with current index
      */
     updateTracker() {
-        // Use the tracker to store current index
+        // Use the tracker to store current stack length
         const range = document.createRange();
         range.selectNodeContents(this.tracker);
-        
+
         const selection = window.getSelection();
         const currentSelection = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-        
+
         selection.removeAllRanges();
         selection.addRange(range);
-        
+
         // Use execCommand to make it undoable
-        document.execCommand('insertText', false, String(this.currentIndex + 1));
-        
+        document.execCommand('insertText', false, String(this.historyStack.length));
+
         // Restore original selection
         if (currentSelection) {
             selection.removeAllRanges();
@@ -133,16 +141,17 @@ class HistoryManager {
      * Perform undo operation
      */
     undo() {
-        if (!this.canUndo()) return false;
-        
-        const change = this.historyStack[this.currentIndex];
-        this.currentIndex--;
-        
+        // DOM index is already reset to the target state when undo event triggers
+        // So we use the current DOM value directly as the operation index
+        const operationIndex = this.currentIndex();
+        const change = this.historyStack[operationIndex];
+        if (!change) return false;
+
         // Mark that we're performing a history action
         this.isPerformingHistoryAction = true;
         const success = this.stateManager.revertChange(change);
         this.isPerformingHistoryAction = false;
-        
+
         return success;
     }
 
@@ -150,16 +159,19 @@ class HistoryManager {
      * Perform redo operation
      */
     redo() {
-        if (!this.canRedo()) return false;
+        // For redo, DOM index points to current state, so we need the previous change
+        const currentIndex = this.currentIndex();
+        if (currentIndex === 0) return false;
         
-        this.currentIndex++;
-        const change = this.historyStack[this.currentIndex];
-        
+        const operationIndex = currentIndex - 1;
+        const change = this.historyStack[operationIndex];
+        if (!change) return false;
+
         // Mark that we're performing a history action
         this.isPerformingHistoryAction = true;
         const success = this.stateManager.applyChange(change);
         this.isPerformingHistoryAction = false;
-        
+
         return success;
     }
 
@@ -167,14 +179,16 @@ class HistoryManager {
      * Check if undo is possible
      */
     canUndo() {
-        return this.currentIndex >= 0;
+        const currentIndex = this.currentIndex();
+        return this.historyStack[currentIndex] !== undefined;
     }
 
     /**
      * Check if redo is possible
      */
     canRedo() {
-        return this.currentIndex < this.historyStack.length - 1;
+        const currentIndex = this.currentIndex();
+        return currentIndex > 0 && this.historyStack[currentIndex - 1] !== undefined;
     }
 
     /**
@@ -182,7 +196,6 @@ class HistoryManager {
      */
     clear() {
         this.historyStack = [];
-        this.currentIndex = -1;
         this.tracker.textContent = '0';
     }
 
@@ -190,9 +203,10 @@ class HistoryManager {
      * Get current history state
      */
     getState() {
+        const currentIndex = this.currentIndex();
         return {
             stack: this.historyStack,
-            index: this.currentIndex
+            index: currentIndex,
         };
     }
 
