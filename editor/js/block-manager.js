@@ -54,9 +54,11 @@ class BlockManager {
 
                 const newEl = document.createElement(newTag);
 
-                // Store for revert
+                // Store for revert (capture parent info before DOM changes)
                 mutation.oldElement = element;
                 mutation.newElement = newEl;
+                mutation.parent = element.parentNode;
+                mutation.nextSibling = element.nextSibling;
 
                 // Move children and replace
                 while (element.firstChild) {
@@ -69,11 +71,16 @@ class BlockManager {
             },
 
             revert: (mutation) => {
-                const { oldElement, newElement } = mutation;
+                const { oldElement, newElement, parent, nextSibling } = mutation;
+                
+                // Restore children to old element
                 while (newElement.firstChild) {
                     oldElement.appendChild(newElement.firstChild);
                 }
-                newElement.parentNode.replaceChild(oldElement, newElement);
+                
+                // Remove new element and restore old element at original position
+                newElement.remove();
+                parent.insertBefore(oldElement, nextSibling);
             },
         });
 

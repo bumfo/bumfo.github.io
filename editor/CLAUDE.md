@@ -137,3 +137,27 @@ editor/
 - `this.restoreCaretState(mutation, 'caretStateAfter')` - Restores to calculated position
 
 See [CARET-HANDLING.md](./CARET-HANDLING.md) for detailed guidelines and implementation patterns.
+
+## History-Compatible Code
+
+**Critical Rule**: Always capture DOM state BEFORE making changes, never rely on stale references.
+
+- **Element replacement**: Capture `parentNode` and `nextSibling` before DOM changes
+- **Revert operations**: Use `remove()` + `insertBefore()` instead of `replaceChild()` with stale refs
+- **Content changes**: Store original state first, then apply changes
+
+Example:
+```javascript
+// GOOD: Capture parent info before changes
+mutation.parent = element.parentNode;
+mutation.nextSibling = element.nextSibling;
+
+// GOOD: Revert with captured info
+newElement.remove();
+parent.insertBefore(oldElement, nextSibling);
+
+// BAD: Stale reference - parentNode might be null
+newElement.parentNode.replaceChild(oldElement, newElement);
+```
+
+See [HISTORY-COMPATIBLE-CODE.md](./HISTORY-COMPATIBLE-CODE.md) for detailed patterns and examples.
