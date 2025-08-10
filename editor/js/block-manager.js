@@ -47,24 +47,21 @@ class BlockManager {
         // Format block handler
         this.stateManager.registerHandler('formatBlock', {
             apply: (mutation) => {
-                const { element, newTag } = mutation;
+                const { element, newElement } = mutation;
                 
                 // Capture current caret state before DOM changes
                 this.captureCaretState(mutation);
 
-                const newEl = document.createElement(newTag);
-
                 // Store for revert (capture parent info before DOM changes)
                 mutation.oldElement = element;
-                mutation.newElement = newEl;
                 mutation.parent = element.parentNode;
                 mutation.nextSibling = element.nextSibling;
 
                 // Move children and replace
                 while (element.firstChild) {
-                    newEl.appendChild(element.firstChild);
+                    newElement.appendChild(element.firstChild);
                 }
-                element.parentNode.replaceChild(newEl, element);
+                element.parentNode.replaceChild(newElement, element);
 
                 // Restore caret position if captured
                 this.restoreCaretState(mutation);
@@ -73,7 +70,7 @@ class BlockManager {
             revert: (mutation) => {
                 const { oldElement, newElement, parent, nextSibling } = mutation;
                 
-                // Restore children to old element
+                // Restore children to old element (reuse existing element)
                 while (newElement.firstChild) {
                     oldElement.appendChild(newElement.firstChild);
                 }
@@ -112,22 +109,18 @@ class BlockManager {
         // Split block handler
         this.stateManager.registerHandler('splitBlock', {
             apply: (mutation) => {
-                const { block, splitOffset, newBlockTag, atEnd, appendContent } = mutation;
+                const { block, splitOffset, newBlock, atEnd } = mutation;
 
                 // Store block index for caret tracking
                 const blocks = Array.from(this.editor.children);
                 mutation.originalBlockIndex = blocks.indexOf(block);
 
-                // Create new block element
-                const newBlock = document.createElement(newBlockTag || block.tagName);
-
-                // Store references for revert
-                mutation.newBlock = newBlock;
+                // Store references for revert (newBlock passed from outside)
                 mutation.originalTextContent = block.textContent;
 
                 if (atEnd) {
-                    // Fast path: assume split at end, create new block with optional content
-                    newBlock.textContent = appendContent || '';
+                    // Fast path: assume split at end, newBlock content already set outside
+                    // No content changes needed to original block
                 } else {
                     // Regular split path
                     mutation.splitOffset = splitOffset;
@@ -139,7 +132,7 @@ class BlockManager {
 
                     // Update original block
                     block.textContent = beforeText;
-                    newBlock.textContent = (appendContent || '') + afterText;
+                    newBlock.textContent = afterText;
                 }
 
                 // Insert new block after original
@@ -300,10 +293,13 @@ class BlockManager {
     formatBlock(block, tagName) {
         if (!this.isBlock(block)) return false;
 
+        // Create new element outside mutation for reusability
+        const newElement = document.createElement(tagName.toUpperCase());
+
         return this.stateManager.commit({
             type: 'formatBlock',
             element: block,
-            newTag: tagName.toUpperCase(),
+            newElement: newElement,
         });
     }
 
@@ -355,16 +351,18 @@ class BlockManager {
     splitBlock(block, offset, newBlockTag = null) {
         if (!this.isBlock(block)) return null;
 
+        // Create new block outside mutation for reusability
+        const newBlock = document.createElement(newBlockTag || block.tagName);
+
         const success = this.stateManager.commit({
             type: 'splitBlock',
             block: block,
             splitOffset: offset,
-            newBlockTag: newBlockTag,
+            newBlock: newBlock,
         });
 
         if (success) {
-            // Find the new block that was created
-            return block.nextElementSibling;
+            return newBlock;
         }
         return null;
     }
@@ -379,16 +377,19 @@ class BlockManager {
     insertBlockAfter(block, content = '', newBlockTag = null) {
         if (!this.isBlock(block)) return null;
 
+        // Create new block outside mutation for reusability
+        const newBlock = document.createElement(newBlockTag || block.tagName);
+        newBlock.textContent = content;
+
         const success = this.stateManager.commit({
             type: 'splitBlock',
             block: block,
             atEnd: true,
-            appendContent: content,
-            newBlockTag: newBlockTag,
+            newBlock: newBlock,
         });
 
         if (success) {
-            return block.nextElementSibling;
+            return newBlock;
         }
         return null;
     }

@@ -161,3 +161,22 @@ newElement.parentNode.replaceChild(oldElement, newElement);
 ```
 
 See [HISTORY-COMPATIBLE-CODE.md](./HISTORY-COMPATIBLE-CODE.md) for detailed patterns and examples.
+
+## Element Creation Patterns
+
+**Best Practice**: Create DOM elements outside mutations when possible, pass them in as parameters.
+
+- **Benefits**: Element reuse in revert operations, cleaner mutation logic, better performance
+- **Pattern**: `createElement()` in high-level method, pass element to mutation
+- **Revert**: Reuse existing DOM elements instead of creating new ones
+
+```javascript
+// GOOD: Create element outside, pass to mutation
+formatBlock(block, tagName) {
+    const newElement = document.createElement(tagName);
+    return this.stateManager.commit({
+        element: block,
+        newElement: newElement,
+    });
+}
+```
