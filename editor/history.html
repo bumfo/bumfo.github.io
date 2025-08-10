@@ -186,6 +186,23 @@ editor.addEventListener('mousedown', function (e) {
         }
     }
 })
+
+function formatBlock(el, tag = 'P', history = false) {
+    let newTag = tag.toUpperCase()
+    let oldTag = el.tagName.toUpperCase()
+    if (newTag !== oldTag) {
+        let newEl = document.createElement(tag)
+        while (el.firstChild) {
+            newEl.appendChild(el.firstChild)
+        }
+        el.parentNode.replaceChild(newEl, el)
+
+        if (!history) {
+            appendHistory({type: 'formatBlock', oldEl: el, newEl})
+        }
+    }
+}
+
 editor.addEventListener('keydown', function (e) {
     function handleEnter() {
         if (!e.shiftKey) {
@@ -230,17 +247,14 @@ editor.addEventListener('keydown', function (e) {
             }
 
             if (BlockText.isAtBlockStart(range)) {
-                let tag = block.previousElementSibling.tagName
-                if (tag !== block.tagName) {
-                    e.preventDefault()
-                    let el = document.createElement(tag)
-                    while (block.firstChild) {
-                        el.appendChild(block.firstChild)
-                    }
+                e.preventDefault()
 
-                    block.parentNode.replaceChild(el, block)
+                if (block.parentNode !== editor) {
+
                 } else {
-                    e.preventDefault()
+                    if (block.tagName !== 'P') {
+                        formatBlock(block, 'P')
+                    }
                 }
 
                 return
