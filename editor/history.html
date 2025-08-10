@@ -159,11 +159,33 @@ editor.addEventListener('keydown', function (e) {
             }
         }
 
-        console.log(block, BlockText.getVisibleOffsetFromBlockStart(range))
+        console.log('absolute', block, BlockText.getVisibleOffsetFromBlockStart(range))
 
         if (!isForward) {
+            if (range.startContainer === editor) {
+                block = editor.childNodes[range.startOffset]
+                if (block !== null && block.firstChild !== null) {
+                    range.setStartBefore(block.firstChild)
+                    console.log(range)
+                }
+
+                if (block === null) return
+            }
+
             if (BlockText.isAtBlockStart(range)) {
-                e.preventDefault()
+                let tag = block.previousElementSibling.tagName
+                if (tag !== block.tagName) {
+                    e.preventDefault()
+                    let el = document.createElement(tag)
+                    while (block.firstChild) {
+                        el.appendChild(block.firstChild)
+                    }
+
+                    block.parentNode.replaceChild(el, block)
+                } else {
+                    e.preventDefault()
+                }
+
                 return
             }
         } else {
@@ -176,8 +198,7 @@ editor.addEventListener('keydown', function (e) {
         let container = range.startContainer
         let offset = range.startOffset
 
-        console.log(container, offset)
-
+        console.log('range', container, offset)
 
         if (container.nodeType === Node.TEXT_NODE) {
             let tmpRange = document.createRange()
