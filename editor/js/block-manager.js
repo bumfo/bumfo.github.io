@@ -72,14 +72,14 @@ class BlockManager {
             newBlock.textContent = content;
         }
         
-        const change = {
+        const mutation = {
             type: 'insertElement',
             element: newBlock,
             parent: this.editor,
             before: beforeBlock
         };
         
-        if (this.stateManager.applyChange(change)) {
+        if (this.stateManager.commit(mutation)) {
             return newBlock;
         }
         return null;
@@ -93,12 +93,12 @@ class BlockManager {
     removeBlock(block) {
         if (!this.isBlock(block)) return false;
         
-        const change = {
+        const mutation = {
             type: 'removeElement',
             element: block
         };
         
-        return this.stateManager.applyChange(change);
+        return this.stateManager.commit(mutation);
     }
 
     /**
@@ -184,23 +184,23 @@ class BlockManager {
         if (beforeBlock && !this.isBlock(beforeBlock)) return false;
         
         // First remove the block
-        const removeChange = {
+        const removeMutation = {
             type: 'removeElement',
             element: block
         };
         
         // Then insert at new position
-        const insertChange = {
+        const insertMutation = {
             type: 'insertElement',
             element: block,
             parent: this.editor,
             before: beforeBlock
         };
         
-        // Apply both changes
-        // Note: In a real implementation, this might be a single composite change
-        if (this.stateManager.applyChange(removeChange)) {
-            return this.stateManager.applyChange(insertChange);
+        // Apply both mutations
+        // Note: In a real implementation, this might be a single composite mutation
+        if (this.stateManager.commit(removeMutation)) {
+            return this.stateManager.commit(insertMutation);
         }
         
         return false;

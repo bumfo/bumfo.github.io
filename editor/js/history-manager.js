@@ -1,5 +1,5 @@
 /**
- * History Manager - Manages undo/redo functionality
+ * History Manager - Manages undo/redo functionality for mutations
  * Uses a hidden contenteditable element to hook into browser's native undo/redo
  */
 class HistoryManager {
@@ -7,13 +7,12 @@ class HistoryManager {
         this.stateManager = stateManager;
         this.selectionManager = selectionManager;
         this.historyStack = [];
-        this.isPerformingHistoryAction = false;
 
         // Create hidden contenteditable for browser undo/redo integration
         this.createHiddenTracker();
-
-        // Listen to state changes
-        this.stateManager.addChangeListener(this.onStateChange.bind(this));
+        
+        // Listen to commits for history recording
+        this.stateManager.addCommitListener(this.onMutationCommit.bind(this));
     }
 
     /**
@@ -49,30 +48,28 @@ class HistoryManager {
     }
 
     /**
-     * Handle state changes from the state manager
+     * Handle committed mutations from the state manager
+     * Only track 'commit' mutations (user mutations), not 'revert' mutations
      */
-    onStateChange(change, action) {
-        // Ignore changes during history operations
-        if (this.isPerformingHistoryAction) return;
-
-        if (action === 'apply') {
-            this.pushChange(change);
+    onMutationCommit(mutation, eventType) {
+        if (eventType === 'commit') {
+            this.pushMutation(mutation);
         }
     }
 
     /**
-     * Push a change to the history stack
+     * Push a mutation to the history stack
      */
-    pushChange(change) {
+    pushMutation(mutation) {
         // Get current index from DOM (0 if empty)
         const currentIndex = this.currentIndex();
 
-        // Remove any changes after current index (for branching history)
+        // Remove any mutations after current index (for branching history)
         if (currentIndex < this.historyStack.length) {
             this.historyStack = this.historyStack.slice(0, currentIndex);
         }
 
-        this.historyStack.push(change);
+        this.historyStack.push(mutation);
 
         // Update hidden tracker
         this.updateTracker();
@@ -144,35 +141,28 @@ class HistoryManager {
         // DOM index is already reset to the target state when undo event triggers
         // So we use the current DOM value directly as the operation index
         const operationIndex = this.currentIndex();
-        const change = this.historyStack[operationIndex];
-        if (!change) return false;
+        const mutation = this.historyStack[operationIndex];
+        if (!mutation) return false;
 
-        // Mark that we're performing a history action
-        this.isPerformingHistoryAction = true;
-        const success = this.stateManager.revertChange(change);
-        this.isPerformingHistoryAction = false;
-
-        return success;
+        // Create revert mutation and replay it (no history recording)
+        const revertMutation = {...mutation, _isRevert: true};
+        return this.stateManager.replay(revertMutation);
     }
 
     /**
      * Perform redo operation
      */
     redo() {
-        // For redo, DOM index points to current state, so we need the previous change
+        // For redo, DOM index points to current state, so we need the previous mutation
         const currentIndex = this.currentIndex();
         if (currentIndex === 0) return false;
         
         const operationIndex = currentIndex - 1;
-        const change = this.historyStack[operationIndex];
-        if (!change) return false;
+        const mutation = this.historyStack[operationIndex];
+        if (!mutation) return false;
 
-        // Mark that we're performing a history action
-        this.isPerformingHistoryAction = true;
-        const success = this.stateManager.applyChange(change);
-        this.isPerformingHistoryAction = false;
-
-        return success;
+        // Replay the forward mutation (no history recording)
+        return this.stateManager.replay(mutation);
     }
 
     /**

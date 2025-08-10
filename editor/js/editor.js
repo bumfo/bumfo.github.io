@@ -253,11 +253,11 @@ class Editor {
         if (!selection.isCollapsed) {
             // Delete selected content before inserting new content
             const range = selection.getRangeAt(0);
-            const change = {
+            const mutation = {
                 type: 'deleteContent',
                 range: range
             };
-            this.stateManager.applyChange(change);
+            this.stateManager.commit(mutation);
         }
     }
 
@@ -304,14 +304,14 @@ class Editor {
     addLine() {
         if (!this.p4 || this.element.contains(this.p4)) return false;
         
-        const change = {
+        const mutation = {
             type: 'insertElement',
             element: this.p4,
             parent: this.element,
             before: null
         };
         
-        return this.stateManager.applyChange(change);
+        return this.stateManager.commit(mutation);
     }
 
     /**
@@ -320,12 +320,12 @@ class Editor {
     deleteLine() {
         if (!this.p4 || !this.element.contains(this.p4)) return false;
         
-        const change = {
+        const mutation = {
             type: 'removeElement',
             element: this.p4
         };
         
-        return this.stateManager.applyChange(change);
+        return this.stateManager.commit(mutation);
     }
 
     /**

@@ -6,13 +6,13 @@
 class StateManager {
     constructor() {
         this.handlers = new Map();
-        this.listeners = [];
-        this.beforeChangeListeners = [];
+        this.commitListeners = [];
+        this.beforeCommitListeners = [];
     }
 
     /**
-     * Register a state change handler
-     * @param {string} type - The type of state change
+     * Register a mutation handler
+     * @param {string} type - The type of mutation
      * @param {Object} handler - Handler object with apply and revert methods
      */
     registerHandler(type, handler) {
@@ -23,99 +23,144 @@ class StateManager {
     }
 
     /**
-     * Apply a state change
-     * @param {Object} change - The state change to apply
-     * @returns {boolean} - Whether the change was applied successfully
+     * Apply a mutation (legacy method, triggers events)
+     * @param {Object} mutation - The mutation to apply
+     * @returns {boolean} - Whether the mutation was applied successfully
      */
-    applyChange(change) {
-        const handler = this.handlers.get(change.type);
+    applyChange(mutation) {
+        return this._applyMutation(mutation, true);
+    }
+
+    /**
+     * Commit a user-initiated mutation (recordable)
+     * @param {Object} mutation - The mutation to commit
+     * @returns {boolean} - Whether the mutation was committed successfully
+     */
+    commit(mutation) {
+        return this._applyMutation(mutation, true);
+    }
+
+    /**
+     * Replay a history mutation (not recordable)
+     * @param {Object} mutation - The mutation to replay
+     * @returns {boolean} - Whether the mutation was replayed successfully
+     */
+    replay(mutation) {
+        return this._applyMutation(mutation, false);
+    }
+
+    /**
+     * Internal apply method
+     * @param {Object} mutation - The mutation to apply
+     * @param {boolean} notifyHistory - Whether to notify commit listeners
+     * @returns {boolean} - Whether the mutation was applied successfully
+     */
+    _applyMutation(mutation, notifyHistory) {
+        const handler = this.handlers.get(mutation.type);
         if (!handler) {
-            console.error(`No handler registered for change type: ${change.type}`);
+            console.error(`No handler registered for mutation type: ${mutation.type}`);
             return false;
         }
 
-        // Notify before change listeners
-        for (const listener of this.beforeChangeListeners) {
-            listener(change);
+        // Notify before commit listeners
+        if (notifyHistory) {
+            for (const listener of this.beforeCommitListeners) {
+                listener(mutation);
+            }
         }
 
         try {
-            handler.apply(change);
+            handler.apply(mutation);
             
-            // Notify listeners after successful change
-            for (const listener of this.listeners) {
-                listener(change, 'apply');
+            // Notify listeners after successful commit
+            if (notifyHistory) {
+                for (const listener of this.commitListeners) {
+                    listener(mutation, 'commit');
+                }
             }
             
             return true;
         } catch (error) {
-            console.error(`Error applying change:`, error);
+            console.error(`Error applying mutation:`, error);
             return false;
         }
     }
 
+
     /**
-     * Revert a state change
-     * @param {Object} change - The state change to revert
-     * @returns {boolean} - Whether the change was reverted successfully
+     * Revert a mutation (legacy method, triggers events)
+     * @param {Object} mutation - The mutation to revert
+     * @returns {boolean} - Whether the mutation was reverted successfully
      */
-    revertChange(change) {
-        const handler = this.handlers.get(change.type);
+    revertChange(mutation) {
+        return this._revertMutation(mutation, true);
+    }
+
+    /**
+     * Internal revert method
+     * @param {Object} mutation - The mutation to revert
+     * @param {boolean} notifyHistory - Whether to notify commit listeners
+     * @returns {boolean} - Whether the mutation was reverted successfully
+     */
+    _revertMutation(mutation, notifyHistory) {
+        const handler = this.handlers.get(mutation.type);
         if (!handler) {
-            console.error(`No handler registered for change type: ${change.type}`);
+            console.error(`No handler registered for mutation type: ${mutation.type}`);
             return false;
         }
 
         try {
-            handler.revert(change);
+            handler.revert(mutation);
             
             // Notify listeners after successful revert
-            for (const listener of this.listeners) {
-                listener(change, 'revert');
+            if (notifyHistory) {
+                for (const listener of this.commitListeners) {
+                    listener(mutation, 'revert');
+                }
             }
             
             return true;
         } catch (error) {
-            console.error(`Error reverting change:`, error);
+            console.error(`Error reverting mutation:`, error);
             return false;
         }
     }
 
     /**
-     * Add a listener for state changes
-     * @param {Function} listener - Function to call when state changes
+     * Add a listener for mutation commits
+     * @param {Function} listener - Function to call when mutations are committed
      */
-    addChangeListener(listener) {
-        this.listeners.push(listener);
+    addCommitListener(listener) {
+        this.commitListeners.push(listener);
     }
 
     /**
-     * Remove a listener for state changes
+     * Remove a listener for mutation commits
      * @param {Function} listener - Function to remove
      */
-    removeChangeListener(listener) {
-        const index = this.listeners.indexOf(listener);
+    removeCommitListener(listener) {
+        const index = this.commitListeners.indexOf(listener);
         if (index > -1) {
-            this.listeners.splice(index, 1);
+            this.commitListeners.splice(index, 1);
         }
     }
 
     /**
-     * Add a listener for before state changes
-     * @param {Function} listener - Function to call before state changes
+     * Add a listener for before mutation commits
+     * @param {Function} listener - Function to call before mutations are committed
      */
-    addBeforeChangeListener(listener) {
-        this.beforeChangeListeners.push(listener);
+    addBeforeCommitListener(listener) {
+        this.beforeCommitListeners.push(listener);
     }
 
     /**
-     * Remove a before change listener
+     * Remove a before commit listener
      * @param {Function} listener - Function to remove
      */
-    removeBeforeChangeListener(listener) {
-        const index = this.beforeChangeListeners.indexOf(listener);
+    removeBeforeCommitListener(listener) {
+        const index = this.beforeCommitListeners.indexOf(listener);
         if (index > -1) {
-            this.beforeChangeListeners.splice(index, 1);
+            this.beforeCommitListeners.splice(index, 1);
         }
     }
 }
