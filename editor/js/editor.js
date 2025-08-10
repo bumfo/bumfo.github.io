@@ -10,10 +10,8 @@ class Editor {
         this.stateManager = new StateManager();
         this.selectionManager = new SelectionManager(editorElement);
         this.blockManager = new BlockManager(editorElement, this.stateManager);
+        this.contentManager = new ContentManager(this.stateManager);
         this.historyManager = new HistoryManager(this.stateManager, this.selectionManager);
-        
-        // Register state handlers
-        this.registerStateHandlers();
         
         // Set up event listeners
         this.setupEventListeners();
@@ -22,114 +20,6 @@ class Editor {
         this.p4 = document.getElementById('p4');
     }
 
-    /**
-     * Register all state change handlers
-     */
-    registerStateHandlers() {
-        // Format block handler
-        this.stateManager.registerHandler('formatBlock', {
-            apply(change) {
-                const { element, newTag } = change;
-                const newEl = document.createElement(newTag);
-                
-                // Store the old element for revert
-                change.oldElement = element;
-                change.newElement = newEl;
-                
-                // Move children to new element
-                while (element.firstChild) {
-                    newEl.appendChild(element.firstChild);
-                }
-                
-                // Replace in DOM
-                element.parentNode.replaceChild(newEl, element);
-            },
-            
-            revert(change) {
-                const { oldElement, newElement } = change;
-                
-                // Move children back
-                while (newElement.firstChild) {
-                    oldElement.appendChild(newElement.firstChild);
-                }
-                
-                // Replace in DOM
-                newElement.parentNode.replaceChild(oldElement, newElement);
-            }
-        });
-
-        // Insert element handler
-        this.stateManager.registerHandler('insertElement', {
-            apply(change) {
-                const { element, parent, before } = change;
-                parent.insertBefore(element, before || null);
-            },
-            
-            revert(change) {
-                const { element } = change;
-                element.remove();
-            }
-        });
-
-        // Remove element handler
-        this.stateManager.registerHandler('removeElement', {
-            apply(change) {
-                const { element } = change;
-                
-                // Store position for revert
-                change.parent = element.parentNode;
-                change.nextSibling = element.nextSibling;
-                
-                element.remove();
-            },
-            
-            revert(change) {
-                const { element, parent, nextSibling } = change;
-                parent.insertBefore(element, nextSibling);
-            }
-        });
-
-        // Text content handler
-        this.stateManager.registerHandler('textContent', {
-            apply(change) {
-                const { element, newContent, oldContent } = change;
-                
-                // Store old content if not provided
-                if (oldContent === undefined) {
-                    change.oldContent = element.textContent;
-                }
-                
-                element.textContent = newContent;
-            },
-            
-            revert(change) {
-                const { element, oldContent } = change;
-                element.textContent = oldContent;
-            }
-        });
-
-        // Delete content handler
-        this.stateManager.registerHandler('deleteContent', {
-            apply(change) {
-                const { range } = change;
-                
-                // Store deleted contents for revert
-                change.deletedContents = range.cloneContents();
-                change.startContainer = range.startContainer;
-                change.startOffset = range.startOffset;
-                
-                range.deleteContents();
-            },
-            
-            revert(change) {
-                const { deletedContents, startContainer, startOffset } = change;
-                
-                const range = document.createRange();
-                range.setStart(startContainer, startOffset);
-                range.insertNode(deletedContents);
-            }
-        });
-    }
 
     /**
      * Set up event listeners
@@ -253,11 +143,10 @@ class Editor {
         if (!selection.isCollapsed) {
             // Delete selected content before inserting new content
             const range = selection.getRangeAt(0);
-            const mutation = {
+            this.stateManager.commit({
                 type: 'deleteContent',
                 range: range
-            };
-            this.stateManager.commit(mutation);
+            });
         }
     }
 
@@ -304,14 +193,12 @@ class Editor {
     addLine() {
         if (!this.p4 || this.element.contains(this.p4)) return false;
         
-        const mutation = {
+        return this.stateManager.commit({
             type: 'insertElement',
             element: this.p4,
             parent: this.element,
             before: null
-        };
-        
-        return this.stateManager.commit(mutation);
+        });
     }
 
     /**
@@ -320,12 +207,10 @@ class Editor {
     deleteLine() {
         if (!this.p4 || !this.element.contains(this.p4)) return false;
         
-        const mutation = {
+        return this.stateManager.commit({
             type: 'removeElement',
             element: this.p4
-        };
-        
-        return this.stateManager.commit(mutation);
+        });
     }
 
     /**

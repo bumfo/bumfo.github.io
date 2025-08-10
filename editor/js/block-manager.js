@@ -5,6 +5,63 @@ class BlockManager {
     constructor(editorElement, stateManager) {
         this.editor = editorElement;
         this.stateManager = stateManager;
+        this.registerHandlers();
+    }
+
+    /**
+     * Register all block-related mutation handlers
+     */
+    registerHandlers() {
+        // Format block handler
+        this.stateManager.registerHandler('formatBlock', {
+            apply: (mutation) => {
+                const { element, newTag } = mutation;
+                const newEl = document.createElement(newTag);
+                
+                // Store for revert
+                mutation.oldElement = element;
+                mutation.newElement = newEl;
+                
+                // Move children and replace
+                while (element.firstChild) {
+                    newEl.appendChild(element.firstChild);
+                }
+                element.parentNode.replaceChild(newEl, element);
+            },
+            
+            revert: (mutation) => {
+                const { oldElement, newElement } = mutation;
+                while (newElement.firstChild) {
+                    oldElement.appendChild(newElement.firstChild);
+                }
+                newElement.parentNode.replaceChild(oldElement, newElement);
+            }
+        });
+
+        // Insert element handler
+        this.stateManager.registerHandler('insertElement', {
+            apply: (mutation) => {
+                const { element, parent, before } = mutation;
+                parent.insertBefore(element, before || null);
+            },
+            
+            revert: (mutation) => mutation.element.remove()
+        });
+
+        // Remove element handler
+        this.stateManager.registerHandler('removeElement', {
+            apply: (mutation) => {
+                const { element } = mutation;
+                mutation.parent = element.parentNode;
+                mutation.nextSibling = element.nextSibling;
+                element.remove();
+            },
+            
+            revert: (mutation) => {
+                const { element, parent, nextSibling } = mutation;
+                parent.insertBefore(element, nextSibling);
+            }
+        });
     }
 
     /**
@@ -50,13 +107,11 @@ class BlockManager {
     formatBlock(block, tagName) {
         if (!this.isBlock(block)) return false;
         
-        const mutation = {
+        return this.stateManager.commit({
             type: 'formatBlock',
             element: block,
             newTag: tagName.toUpperCase()
-        };
-        
-        return this.stateManager.commit(mutation);
+        });
     }
 
     /**
@@ -72,14 +127,12 @@ class BlockManager {
             newBlock.textContent = content;
         }
         
-        const mutation = {
+        if (this.stateManager.commit({
             type: 'insertElement',
             element: newBlock,
             parent: this.editor,
             before: beforeBlock
-        };
-        
-        if (this.stateManager.commit(mutation)) {
+        })) {
             return newBlock;
         }
         return null;
@@ -93,12 +146,10 @@ class BlockManager {
     removeBlock(block) {
         if (!this.isBlock(block)) return false;
         
-        const mutation = {
+        return this.stateManager.commit({
             type: 'removeElement',
             element: block
-        };
-        
-        return this.stateManager.commit(mutation);
+        });
     }
 
     /**
@@ -183,24 +234,18 @@ class BlockManager {
         if (!this.isBlock(block)) return false;
         if (beforeBlock && !this.isBlock(beforeBlock)) return false;
         
-        // First remove the block
-        const removeMutation = {
-            type: 'removeElement',
-            element: block
-        };
-        
-        // Then insert at new position
-        const insertMutation = {
-            type: 'insertElement',
-            element: block,
-            parent: this.editor,
-            before: beforeBlock
-        };
-        
         // Apply both mutations
         // Note: In a real implementation, this might be a single composite mutation
-        if (this.stateManager.commit(removeMutation)) {
-            return this.stateManager.commit(insertMutation);
+        if (this.stateManager.commit({
+            type: 'removeElement',
+            element: block
+        })) {
+            return this.stateManager.commit({
+                type: 'insertElement',
+                element: block,
+                parent: this.editor,
+                before: beforeBlock
+            });
         }
         
         return false;
