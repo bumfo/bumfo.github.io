@@ -1,17 +1,20 @@
 <!doctype html>
-<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1"><title>Editor</title>
+<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Editor</title>
 
 <div id="editor" contenteditable>
-<div>div1</div>
-<div>div2</div>
-<div>div3</div>
-<div id="div4">div4</div>
+    <div>div1</div>
+    <div>div2</div>
+    <div>div3</div>
+    <div id="div4">div4</div>
 </div>
 
 <button id="btn">Do it</button>
 <div contenteditable id="div5" tabindex="-1"></div>
 
 <script>
+"use strict"
+
 let editor = document.querySelector('#editor')
 let btn = document.querySelector('#btn')
 let div4 = document.querySelector('#div4')
@@ -20,115 +23,118 @@ let div5 = document.querySelector('#div5')
 let savedRange = null
 
 function preventDefault(e) {
-	e.preventDefault()
+    e.preventDefault()
 }
 
 function execCommand(command, value = null) {
-	if (!document.execCommand(command, false, value)) {
-		throw new Error(command)
-	}
+    if (!document.execCommand(command, false, value)) {
+        throw new Error(command)
+    }
 }
 
 function saveSelection() {
-	let selection = window.getSelection()
-	let range = selection.getRangeAt(0)
-	console.log(range)
-	savedRange = range
+    let selection = window.getSelection()
+    let range = selection.getRangeAt(0)
+    console.log(range)
+    savedRange = range
 }
 
 function restoreSelection() {
-	if (savedRange !== null) {
-		let selection = window.getSelection()
-		selection.removeAllRanges()
-		selection.addRange(savedRange)	
-	}
+    if (savedRange !== null) {
+        let selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(savedRange)
+    }
 }
 
-function addLine(history=false) {
-	editor.insertBefore(div4, null)
+function addLine(history = false) {
+    if (editor.contains(div4)) return false
+    editor.insertBefore(div4, null)
 
-	if (!history) {
-		let tmpRange = document.createRange()
-		tmpRange.selectNodeContents(div5)
-		let selection = window.getSelection()
-		selection.removeAllRanges()
-		selection.addRange(tmpRange)
-		execCommand('delete')
-	}
+    if (!history) {
+        let tmpRange = document.createRange()
+        tmpRange.selectNodeContents(div5)
+        let selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(tmpRange)
+        execCommand('delete')
+    }
 }
 
-function deleteLine(history=false) {
-	div4.remove()
+function deleteLine(history = false) {
+    if (!editor.contains(div4)) return false
+    div4.remove()
 
-	if (!history) {
-		let tmpRange = document.createRange()
-		tmpRange.selectNodeContents(div5)
-		let selection = window.getSelection()
-		selection.removeAllRanges()
-		selection.addRange(tmpRange)
-		execCommand('insertText', 'delete div4')
-	}
+    if (!history) {
+        let tmpRange = document.createRange()
+        tmpRange.selectNodeContents(div5)
+        let selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(tmpRange)
+        execCommand('insertText', 'delete div4')
+    }
 }
 
 btn.addEventListener('mousedown', preventDefault)
 btn.addEventListener('focus', preventDefault)
-btn.addEventListener('click', function() {
-	saveSelection()
-	deleteLine()
-	restoreSelection()
+btn.addEventListener('click', function () {
+    saveSelection()
+    deleteLine()
+    restoreSelection()
 })
 
-div5.addEventListener('beforeinput', function(e) {
-	saveSelection()
+div5.addEventListener('beforeinput', function (e) {
+    saveSelection()
 })
-div5.addEventListener('input', function(e) {
-	console.log(e.inputType, e)
-	switch (e.inputType) {
-	case 'historyUndo':
-		addLine(true)
-		restoreSelection()
-		break;
-	case 'historyRedo':
-		deleteLine(true)
-		restoreSelection()
-		break;
-	}
+div5.addEventListener('input', function (e) {
+    console.log(e.inputType, e)
+    switch (e.inputType) {
+        case 'historyUndo':
+            addLine(true)
+            restoreSelection()
+            break
+        case 'historyRedo':
+            deleteLine(true)
+            restoreSelection()
+            break
+    }
 })
 
-div5.addEventListener('focus', function(e) {
-	e.preventDefault()
-	e.target.blur()
-	requestAnimationFrame(restoreSelection)
+div5.addEventListener('focus', function (e) {
+    e.preventDefault()
+    e.target.blur()
+    requestAnimationFrame(restoreSelection)
 })
 
 document.querySelectorAll('[contenteditable]').forEach(el => {
-	// el.addEventListener('mousedown', preventDefault)
+    // el.addEventListener('mousedown', preventDefault)
 })
 
-editor.addEventListener('mousedown', function(e) {
-	let el = e.target
-	if (el !== editor) {
-		while (el.parentNode !== editor) {
-			el = el.parentNode
-		}
-		if (!el.getAttribute('contenteditable')) {
-			console.log('set contenteditable')
-			el.setAttribute('contenteditable', true)
-			console.log(el)
-			// el.addEventListener('blur', function onblur(e) {
-			// 	console.log('blur', el)
-			// 	el.removeAttribute('contenteditable')
-			// 	el.removeEventListener('blur', onblur)
-			// })
-		}
-	}
+editor.addEventListener('mousedown', function (e) {
+    let el = e.target
+    if (el !== editor) {
+        while (el.parentNode !== editor) {
+            el = el.parentNode
+        }
+        let contenteditable = el.hasAttribute('contenteditable')
+        if (!contenteditable) {
+            console.log('set contenteditable')
+            el.setAttribute('contenteditable', '')
+            console.log(el)
+            // el.addEventListener('blur', function onblur(e) {
+            // 	console.log('blur', el)
+            // 	el.removeAttribute('contenteditable')
+            // 	el.removeEventListener('blur', onblur)
+            // })
+        }
+    }
 })
 
 </script>
 
 <style>
 #div5 {
-	user-select: none;	
-	pointer-events: none;
+    user-select: none;
+    pointer-events: none;
 }
 </style>
