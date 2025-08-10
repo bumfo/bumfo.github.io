@@ -23,21 +23,12 @@ class StateManager {
     }
 
     /**
-     * Apply a mutation (legacy method, triggers events)
-     * @param {Object} mutation - The mutation to apply
-     * @returns {boolean} - Whether the mutation was applied successfully
-     */
-    applyChange(mutation) {
-        return this._applyMutation(mutation, true);
-    }
-
-    /**
      * Commit a user-initiated mutation (recordable)
      * @param {Object} mutation - The mutation to commit
      * @returns {boolean} - Whether the mutation was committed successfully
      */
     commit(mutation) {
-        return this._applyMutation(mutation, true);
+        return this._executeMutation(mutation, false, true);
     }
 
     /**
@@ -46,82 +37,58 @@ class StateManager {
      * @returns {boolean} - Whether the mutation was replayed successfully
      */
     replay(mutation) {
-        return this._applyMutation(mutation, false);
+        return this._executeMutation(mutation, false, false);
     }
 
     /**
-     * Internal apply method
-     * @param {Object} mutation - The mutation to apply
-     * @param {boolean} notifyHistory - Whether to notify commit listeners
-     * @returns {boolean} - Whether the mutation was applied successfully
+     * Revert a mutation (not recordable)
+     * @param {Object} mutation - The mutation to revert
+     * @returns {boolean} - Whether the mutation was reverted successfully
      */
-    _applyMutation(mutation, notifyHistory) {
+    revert(mutation) {
+        return this._executeMutation(mutation, true, false);
+    }
+
+    /**
+     * Internal method to execute mutations (apply or revert)
+     * @param {Object} mutation - The mutation to execute
+     * @param {boolean} isRevert - false for apply, true for revert
+     * @param {boolean} notifyHistory - Whether to notify commit listeners
+     * @returns {boolean} - Whether the mutation was executed successfully
+     */
+    _executeMutation(mutation, isRevert, notifyHistory) {
         const handler = this.handlers.get(mutation.type);
         if (!handler) {
             console.error(`No handler registered for mutation type: ${mutation.type}`);
             return false;
         }
 
-        // Notify before commit listeners
-        if (notifyHistory) {
+        // Notify before commit listeners (only for apply operations)
+        if (notifyHistory && !isRevert) {
             for (const listener of this.beforeCommitListeners) {
                 listener(mutation);
             }
         }
 
         try {
-            handler.apply(mutation);
-            
-            // Notify listeners after successful commit
+            if (isRevert) {
+                handler.revert(mutation);
+            } else {
+                handler.apply(mutation);
+            }
+
+            // Notify listeners after successful operation
             if (notifyHistory) {
+                const eventType = isRevert ? 'revert' : 'commit';
                 for (const listener of this.commitListeners) {
-                    listener(mutation, 'commit');
+                    listener(mutation, eventType);
                 }
             }
-            
+
             return true;
         } catch (error) {
-            console.error(`Error applying mutation:`, error);
-            return false;
-        }
-    }
-
-
-    /**
-     * Revert a mutation (legacy method, triggers events)
-     * @param {Object} mutation - The mutation to revert
-     * @returns {boolean} - Whether the mutation was reverted successfully
-     */
-    revertChange(mutation) {
-        return this._revertMutation(mutation, true);
-    }
-
-    /**
-     * Internal revert method
-     * @param {Object} mutation - The mutation to revert
-     * @param {boolean} notifyHistory - Whether to notify commit listeners
-     * @returns {boolean} - Whether the mutation was reverted successfully
-     */
-    _revertMutation(mutation, notifyHistory) {
-        const handler = this.handlers.get(mutation.type);
-        if (!handler) {
-            console.error(`No handler registered for mutation type: ${mutation.type}`);
-            return false;
-        }
-
-        try {
-            handler.revert(mutation);
-            
-            // Notify listeners after successful revert
-            if (notifyHistory) {
-                for (const listener of this.commitListeners) {
-                    listener(mutation, 'revert');
-                }
-            }
-            
-            return true;
-        } catch (error) {
-            console.error(`Error reverting mutation:`, error);
+            const operation = isRevert ? 'reverting' : 'applying';
+            console.error(`Error ${operation} mutation:`, error);
             return false;
         }
     }

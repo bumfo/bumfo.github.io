@@ -50,13 +50,13 @@ class BlockManager {
     formatBlock(block, tagName) {
         if (!this.isBlock(block)) return false;
         
-        const change = {
+        const mutation = {
             type: 'formatBlock',
             element: block,
             newTag: tagName.toUpperCase()
         };
         
-        return this.stateManager.applyChange(change);
+        return this.stateManager.commit(mutation);
     }
 
     /**

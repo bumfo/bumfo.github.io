@@ -144,9 +144,8 @@ class HistoryManager {
         const mutation = this.historyStack[operationIndex];
         if (!mutation) return false;
 
-        // Create revert mutation and replay it (no history recording)
-        const revertMutation = {...mutation, _isRevert: true};
-        return this.stateManager.replay(revertMutation);
+        // Revert the mutation (no history recording)
+        return this.stateManager.revert(mutation);
     }
 
     /**
