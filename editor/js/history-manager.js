@@ -60,7 +60,7 @@ class HistoryManager {
             const range = selection.getRangeAt(0);
             this.cachedSelectionRect = range.getBoundingClientRect();
         }
-        
+
         // Capture current caret state for undo
         mutation.caretStateBefore = this.caretTracker.captureCaretState();
     }
@@ -86,12 +86,12 @@ class HistoryManager {
                 // Capture caret state after mutation for redo
                 mutation.caretStateAfter = this.caretTracker.captureCaretState();
             }
-            
+
             // Adjust existing caret states in history for structural changes
             if (mutation.type === 'splitBlock' || mutation.type === 'mergeBlocks') {
                 this.adjustHistoryCaretStates(mutation);
             }
-            
+
             this.pushMutation(mutation);
         }
     }
@@ -104,23 +104,23 @@ class HistoryManager {
             if (historyMutation.caretStateBefore) {
                 if (mutation.type === 'splitBlock') {
                     historyMutation.caretStateBefore = Carets.adjustCaretStateAfterSplit(
-                        historyMutation.caretStateBefore, mutation
+                        historyMutation.caretStateBefore, mutation,
                     );
                 } else if (mutation.type === 'mergeBlocks') {
                     historyMutation.caretStateBefore = Carets.adjustCaretStateAfterMerge(
-                        historyMutation.caretStateBefore, mutation
+                        historyMutation.caretStateBefore, mutation,
                     );
                 }
             }
-            
+
             if (historyMutation.caretStateAfter) {
                 if (mutation.type === 'splitBlock') {
                     historyMutation.caretStateAfter = Carets.adjustCaretStateAfterSplit(
-                        historyMutation.caretStateAfter, mutation
+                        historyMutation.caretStateAfter, mutation,
                     );
                 } else if (mutation.type === 'mergeBlocks') {
                     historyMutation.caretStateAfter = Carets.adjustCaretStateAfterMerge(
-                        historyMutation.caretStateAfter, mutation
+                        historyMutation.caretStateAfter, mutation,
                     );
                 }
             }

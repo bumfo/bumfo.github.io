@@ -30,31 +30,31 @@ class CaretState {
      */
     isValid(editor) {
         const blocks = Array.from(editor.children);
-        
+
         // Check start position
         if (this.startBlockIndex < 0 || this.startBlockIndex >= blocks.length) {
             return false;
         }
-        
+
         const startBlock = blocks[this.startBlockIndex];
         const startTextLength = this.getTextLength(startBlock);
         if (this.startOffset < 0 || this.startOffset > startTextLength) {
             return false;
         }
-        
+
         // Check end position if not collapsed
         if (!this.isCollapsed) {
             if (this.endBlockIndex < 0 || this.endBlockIndex >= blocks.length) {
                 return false;
             }
-            
+
             const endBlock = blocks[this.endBlockIndex];
             const endTextLength = this.getTextLength(endBlock);
             if (this.endOffset < 0 || this.endOffset > endTextLength) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -73,14 +73,14 @@ class CaretState {
         if (blocks.length === 0) {
             return CaretState.collapsed(0, 0);
         }
-        
+
         // Try to place caret in the closest valid position
         const maxBlockIndex = blocks.length - 1;
         const blockIndex = Math.max(0, Math.min(this.startBlockIndex, maxBlockIndex));
         const block = blocks[blockIndex];
         const maxOffset = this.getTextLength(block);
         const offset = Math.max(0, Math.min(this.startOffset, maxOffset));
-        
+
         return CaretState.collapsed(blockIndex, offset);
     }
 
@@ -135,14 +135,14 @@ class CaretTracker {
 
         try {
             const startPos = this.getLogicalPosition(range.startContainer, range.startOffset);
-            
+
             if (range.collapsed) {
                 return CaretState.collapsed(startPos.blockIndex, startPos.offset);
             }
-            
+
             const endPos = this.getLogicalPosition(range.endContainer, range.endOffset);
             return CaretState.range(startPos.blockIndex, startPos.offset, endPos.blockIndex, endPos.offset);
-            
+
         } catch (error) {
             console.warn('Failed to capture caret state:', error);
             return null;
@@ -163,7 +163,7 @@ class CaretTracker {
         }
 
         this.isUpdating = true;
-        
+
         try {
             const range = this.createRangeFromCaretState(caretState);
             if (range) {
@@ -175,7 +175,7 @@ class CaretTracker {
         } finally {
             this.isUpdating = false;
         }
-        
+
         return false;
     }
 
@@ -184,18 +184,18 @@ class CaretTracker {
      */
     createRangeFromCaretState(caretState) {
         const blocks = Array.from(this.editor.children);
-        
+
         // Validate block indices
         if (caretState.startBlockIndex >= blocks.length || caretState.startBlockIndex < 0) {
             return null;
         }
-        
+
         const startPos = this.getDOMPosition(blocks[caretState.startBlockIndex], caretState.startOffset);
         if (!startPos) return null;
-        
+
         const range = document.createRange();
         range.setStart(startPos.node, startPos.offset);
-        
+
         if (caretState.isCollapsed) {
             range.collapse(true);
         } else {
@@ -211,7 +211,7 @@ class CaretTracker {
                 }
             }
         }
-        
+
         return range;
     }
 
@@ -220,30 +220,30 @@ class CaretTracker {
      */
     getLogicalPosition(node, offset) {
         const blocks = Array.from(this.editor.children);
-        
+
         // Find the containing block
         let blockElement = node;
         if (node.nodeType === Node.TEXT_NODE) {
             blockElement = node.parentElement;
         }
-        
+
         // Walk up to find the block (direct child of editor)
         while (blockElement && blockElement.parentNode !== this.editor) {
             blockElement = blockElement.parentNode;
         }
-        
+
         if (!blockElement) {
             throw new Error('Node not found in editor');
         }
-        
+
         const blockIndex = blocks.indexOf(blockElement);
         if (blockIndex === -1) {
             throw new Error('Block not found in editor children');
         }
-        
+
         // Calculate text offset within the block
         const textOffset = this.getTextOffsetInBlock(blockElement, node, offset);
-        
+
         return { blockIndex, offset: textOffset };
     }
 
@@ -252,27 +252,27 @@ class CaretTracker {
      */
     getDOMPosition(block, textOffset) {
         if (!block) return null;
-        
+
         let currentOffset = 0;
         const walker = document.createTreeWalker(
             block,
             NodeFilter.SHOW_TEXT,
             null,
-            false
+            false,
         );
-        
+
         let node;
         while (node = walker.nextNode()) {
             const nodeLength = node.textContent.length;
-            
+
             if (currentOffset + nodeLength >= textOffset) {
                 const offsetInNode = textOffset - currentOffset;
                 return { node, offset: offsetInNode };
             }
-            
+
             currentOffset += nodeLength;
         }
-        
+
         // If we reach here, place at end of block
         // Find the last text node by walking through all nodes
         let lastTextNode = null;
@@ -283,11 +283,11 @@ class CaretTracker {
                 lastTextNode = currentNode;
             }
         }
-        
+
         if (lastTextNode) {
             return { node: lastTextNode, offset: lastTextNode.textContent.length };
         }
-        
+
         // Fallback: place at end of block element
         return { node: block, offset: block.childNodes.length };
     }
@@ -297,14 +297,14 @@ class CaretTracker {
      */
     getTextOffsetInBlock(block, targetNode, targetOffset) {
         let textOffset = 0;
-        
+
         const walker = document.createTreeWalker(
             block,
             NodeFilter.SHOW_TEXT,
             null,
-            false
+            false,
         );
-        
+
         let node;
         while (node = walker.nextNode()) {
             if (node === targetNode) {
@@ -312,7 +312,7 @@ class CaretTracker {
             }
             textOffset += node.textContent.length;
         }
-        
+
         // If target node is not a text node, it might be an element
         if (targetNode.nodeType === Node.ELEMENT_NODE) {
             // Find the text offset up to this element
@@ -320,12 +320,12 @@ class CaretTracker {
                 block,
                 NodeFilter.SHOW_ALL,
                 null,
-                false
+                false,
             );
-            
+
             let currentTextOffset = 0;
             let currentNode;
-            
+
             while (currentNode = walker2.nextNode()) {
                 if (currentNode === targetNode) {
                     return currentTextOffset;
@@ -335,7 +335,7 @@ class CaretTracker {
                 }
             }
         }
-        
+
         // Fallback to block end
         return block.textContent.length;
     }
@@ -346,7 +346,7 @@ class CaretTracker {
      */
     normalizeRange(range) {
         const normalizedRange = range.cloneRange();
-        
+
         // Fix start position if it's at editor level
         if (range.startContainer === this.editor && range.startOffset < this.editor.childNodes.length) {
             const targetNode = this.editor.childNodes[range.startOffset];
@@ -361,7 +361,7 @@ class CaretTracker {
                 }
             }
         }
-        
+
         // Fix end position if it's at editor level
         if (range.endContainer === this.editor && range.endOffset < this.editor.childNodes.length) {
             const targetNode = this.editor.childNodes[range.endOffset];
@@ -374,12 +374,12 @@ class CaretTracker {
                 }
             }
         }
-        
+
         // If range was collapsed, keep it collapsed
         if (range.collapsed) {
             normalizedRange.collapse(true);
         }
-        
+
         return normalizedRange;
     }
 
@@ -391,7 +391,7 @@ class CaretTracker {
             block,
             NodeFilter.SHOW_TEXT,
             null,
-            false
+            false,
         );
         return walker.nextNode();
     }
@@ -413,13 +413,13 @@ class CaretTracker {
         if (node.nodeType === Node.TEXT_NODE) {
             blockElement = node.parentElement;
         }
-        
+
         while (blockElement && blockElement.parentNode !== this.editor) {
             blockElement = blockElement.parentNode;
         }
-        
+
         if (!blockElement) return -1;
-        
+
         return Array.from(this.editor.children).indexOf(blockElement);
     }
 

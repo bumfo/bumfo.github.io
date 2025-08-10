@@ -17,25 +17,25 @@ class BlockManager {
             apply: (mutation) => {
                 const { element, newTag } = mutation;
                 const newEl = document.createElement(newTag);
-                
+
                 // Store for revert
                 mutation.oldElement = element;
                 mutation.newElement = newEl;
-                
+
                 // Move children and replace
                 while (element.firstChild) {
                     newEl.appendChild(element.firstChild);
                 }
                 element.parentNode.replaceChild(newEl, element);
             },
-            
+
             revert: (mutation) => {
                 const { oldElement, newElement } = mutation;
                 while (newElement.firstChild) {
                     oldElement.appendChild(newElement.firstChild);
                 }
                 newElement.parentNode.replaceChild(oldElement, newElement);
-            }
+            },
         });
 
         // Insert element handler
@@ -44,8 +44,8 @@ class BlockManager {
                 const { element, parent, before } = mutation;
                 parent.insertBefore(element, before || null);
             },
-            
-            revert: (mutation) => mutation.element.remove()
+
+            revert: (mutation) => mutation.element.remove(),
         });
 
         // Remove element handler
@@ -56,63 +56,63 @@ class BlockManager {
                 mutation.nextSibling = element.nextSibling;
                 element.remove();
             },
-            
+
             revert: (mutation) => {
                 const { element, parent, nextSibling } = mutation;
                 parent.insertBefore(element, nextSibling);
-            }
+            },
         });
 
         // Split block handler
         this.stateManager.registerHandler('splitBlock', {
             apply: (mutation) => {
                 const { block, splitOffset, newBlockTag } = mutation;
-                
+
                 // Store block index for caret tracking
                 const blocks = Array.from(this.editor.children);
                 mutation.originalBlockIndex = blocks.indexOf(block);
-                
+
                 // Create new block element
                 const newBlock = document.createElement(newBlockTag || block.tagName);
-                
+
                 // Store references for revert
                 mutation.newBlock = newBlock;
                 mutation.originalTextContent = block.textContent;
                 mutation.splitOffset = splitOffset;
-                
+
                 // Split the text content
                 const textContent = block.textContent;
                 const beforeText = textContent.substring(0, splitOffset);
                 const afterText = textContent.substring(splitOffset);
-                
+
                 // Update original block
                 block.textContent = beforeText;
                 newBlock.textContent = afterText;
-                
+
                 // Insert new block after original
                 block.parentNode.insertBefore(newBlock, block.nextSibling);
-                
+
                 // Store new block index and caret state for redo (cursor at start of new block)
                 mutation.newBlockIndex = mutation.originalBlockIndex + 1;
                 mutation.caretStateAfter = CaretState.collapsed(mutation.newBlockIndex, 0);
             },
-            
+
             revert: (mutation) => {
                 const { block, newBlock, originalTextContent } = mutation;
-                
+
                 // Remove the new block
                 newBlock.remove();
-                
+
                 // Restore original text content
                 block.textContent = originalTextContent;
-            }
+            },
         });
 
         // Merge blocks handler  
         this.stateManager.registerHandler('mergeBlocks', {
             apply: (mutation) => {
                 const { firstBlock, secondBlock } = mutation;
-                
+
                 // Store block indices and content for revert and caret tracking
                 const blocks = Array.from(this.editor.children);
                 mutation.firstBlockIndex = blocks.indexOf(firstBlock);
@@ -120,40 +120,40 @@ class BlockManager {
                 mutation.firstBlockContent = firstBlock.textContent;
                 mutation.secondBlockContent = secondBlock.textContent;
                 mutation.mergeOffset = firstBlock.textContent.length;
-                
+
                 // Store second block's tag for proper restoration
                 mutation.secondBlockTag = secondBlock.tagName;
-                
+
                 // Set caret state for after merge (cursor at merge point where first block ends)
                 mutation.caretStateAfter = CaretState.collapsed(mutation.firstBlockIndex, mutation.mergeOffset);
-                
+
                 // Merge content
                 firstBlock.textContent = firstBlock.textContent + secondBlock.textContent;
-                
+
                 // Remove second block
                 secondBlock.remove();
-                
+
                 // Restore caret to merge point immediately after DOM changes
                 const caretTracker = window.editor?.caretTracker;
                 if (caretTracker) {
                     caretTracker.restoreCaretState(mutation.caretStateAfter);
                 }
             },
-            
+
             revert: (mutation) => {
                 const { firstBlock, firstBlockContent, secondBlockContent, secondBlockTag } = mutation;
-                
+
                 // Restore original content
                 firstBlock.textContent = firstBlockContent;
-                
+
                 // Re-create second block with correct tag
                 const secondBlock = document.createElement(secondBlockTag);
                 secondBlock.textContent = secondBlockContent;
                 mutation.secondBlock = secondBlock; // Update reference
-                
+
                 // Re-insert second block
                 firstBlock.parentNode.insertBefore(secondBlock, firstBlock.nextSibling);
-            }
+            },
         });
     }
 
@@ -172,43 +172,14 @@ class BlockManager {
      */
     getBlockForNode(node) {
         if (!node) return null;
-        
+
         let block = node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
-        
+
         while (block && block !== this.editor && block.parentNode !== this.editor) {
             block = block.parentNode;
         }
-        
-        return block === this.editor ? null : block;
-    }
 
-    /**
-     * Fix caret position after formatBlock operation
-     * Handles the case where caret might be at editor level after DOM replacement
-     */
-    fixCaretAfterFormatBlock(newBlock) {
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        
-        // Check if caret is at editor level pointing to this block
-        if (range.startContainer === this.editor) {
-            const blockIndex = Array.from(this.editor.children).indexOf(newBlock);
-            if (blockIndex >= 0 && range.startOffset === blockIndex) {
-                // Move caret to start of the new block
-                const firstTextNode = this.getFirstTextNode(newBlock);
-                if (firstTextNode) {
-                    range.setStart(firstTextNode, 0);
-                    range.collapse(true);
-                } else {
-                    // No text node, place at start of block
-                    range.setStart(newBlock, 0);
-                    range.collapse(true);
-                }
-                Carets.setRange(range);
-            }
-        }
+        return block === this.editor ? null : block;
     }
 
     /**
@@ -219,7 +190,7 @@ class BlockManager {
             block,
             NodeFilter.SHOW_TEXT,
             null,
-            false
+            false,
         );
         return walker.nextNode();
     }
@@ -241,11 +212,11 @@ class BlockManager {
      */
     formatBlock(block, tagName) {
         if (!this.isBlock(block)) return false;
-        
+
         return this.stateManager.commit({
             type: 'formatBlock',
             element: block,
-            newTag: tagName.toUpperCase()
+            newTag: tagName.toUpperCase(),
         });
     }
 
@@ -261,12 +232,12 @@ class BlockManager {
         if (content) {
             newBlock.textContent = content;
         }
-        
+
         if (this.stateManager.commit({
             type: 'insertElement',
             element: newBlock,
             parent: this.editor,
-            before: beforeBlock
+            before: beforeBlock,
         })) {
             return newBlock;
         }
@@ -280,10 +251,10 @@ class BlockManager {
      */
     removeBlock(block) {
         if (!this.isBlock(block)) return false;
-        
+
         return this.stateManager.commit({
             type: 'removeElement',
-            element: block
+            element: block,
         });
     }
 
@@ -296,14 +267,14 @@ class BlockManager {
      */
     splitBlock(block, offset, newBlockTag = null) {
         if (!this.isBlock(block)) return null;
-        
+
         const success = this.stateManager.commit({
             type: 'splitBlock',
             block: block,
             splitOffset: offset,
-            newBlockTag: newBlockTag
+            newBlockTag: newBlockTag,
         });
-        
+
         if (success) {
             // Find the new block that was created
             return block.nextElementSibling;
@@ -320,11 +291,11 @@ class BlockManager {
     mergeBlocks(firstBlock, secondBlock) {
         if (!this.isBlock(firstBlock) || !this.isBlock(secondBlock)) return false;
         if (firstBlock.nextElementSibling !== secondBlock) return false;
-        
+
         return this.stateManager.commit({
             type: 'mergeBlocks',
             firstBlock: firstBlock,
-            secondBlock: secondBlock
+            secondBlock: secondBlock,
         });
     }
 
@@ -335,10 +306,10 @@ class BlockManager {
      */
     mergeWithPrevious(block) {
         if (!this.isBlock(block)) return false;
-        
+
         const previousBlock = block.previousElementSibling;
         if (!previousBlock || !this.isBlock(previousBlock)) return false;
-        
+
         return this.mergeBlocks(previousBlock, block);
     }
 
@@ -355,7 +326,7 @@ class BlockManager {
      */
     normalizeBlocks() {
         const childNodes = Array.from(this.editor.childNodes);
-        
+
         for (const node of childNodes) {
             if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
                 const p = document.createElement(this.getDefaultBlockTag());
@@ -373,13 +344,13 @@ class BlockManager {
      */
     isBlockAtPosition(block, position) {
         if (!this.isBlock(block)) return false;
-        
+
         if (position === 'first') {
             return block === this.editor.firstElementChild;
         } else if (position === 'last') {
             return block === this.editor.lastElementChild;
         }
-        
+
         return false;
     }
 
@@ -392,21 +363,21 @@ class BlockManager {
     moveBlock(block, beforeBlock = null) {
         if (!this.isBlock(block)) return false;
         if (beforeBlock && !this.isBlock(beforeBlock)) return false;
-        
+
         // Apply both mutations
         // Note: In a real implementation, this might be a single composite mutation
         if (this.stateManager.commit({
             type: 'removeElement',
-            element: block
+            element: block,
         })) {
             return this.stateManager.commit({
                 type: 'insertElement',
                 element: block,
                 parent: this.editor,
-                before: beforeBlock
+                before: beforeBlock,
             });
         }
-        
+
         return false;
     }
 }

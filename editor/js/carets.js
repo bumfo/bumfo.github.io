@@ -78,7 +78,7 @@ class Carets {
      */
     static adjustCaretStateAfterSplit(caretState, splitMutation) {
         const { originalBlockIndex, splitOffset, newBlockIndex } = splitMutation;
-        
+
         if (caretState.startBlockIndex === originalBlockIndex) {
             // Caret was in the split block
             if (caretState.startOffset >= splitOffset) {
@@ -92,7 +92,7 @@ class Carets {
             // Caret was in a later block, increment block index
             return CaretState.collapsed(caretState.startBlockIndex + 1, caretState.startOffset);
         }
-        
+
         // Caret was in an earlier block, no change needed
         return caretState;
     }
@@ -105,7 +105,7 @@ class Carets {
      */
     static adjustCaretStateAfterMerge(caretState, mergeMutation) {
         const { firstBlockIndex, secondBlockIndex, mergeOffset } = mergeMutation;
-        
+
         if (caretState.startBlockIndex === secondBlockIndex) {
             // Caret was in the second (removed) block, move to first block
             const newOffset = mergeOffset + caretState.startOffset;
@@ -114,7 +114,7 @@ class Carets {
             // Caret was in a later block, decrement block index
             return CaretState.collapsed(caretState.startBlockIndex - 1, caretState.startOffset);
         }
-        
+
         // Caret was in earlier block or first block, no change needed
         return caretState;
     }

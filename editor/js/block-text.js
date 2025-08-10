@@ -28,7 +28,7 @@ const BlockText = (() => {
         return null;
     }
 
-    function nearestBlockAncestor(node, {respectCSS}) {
+    function nearestBlockAncestor(node, { respectCSS }) {
         if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
         for (let cur = node; cur && cur.nodeType === 1; cur = cur.parentNode) {
             const el = /** @type {Element} */(cur);
@@ -135,7 +135,7 @@ const BlockText = (() => {
         return s;
     }
 
-    function makeWalker(block, slice, {respectCSS, skipHidden}) {
+    function makeWalker(block, slice, { respectCSS, skipHidden }) {
         const doc = block.ownerDocument || document;
         return doc.createTreeWalker(
             block,
@@ -185,7 +185,7 @@ const BlockText = (() => {
         } = opts || {};
 
         const slice = sliceRange(block, edgeRange, side);
-        const walker = makeWalker(block, slice, {respectCSS, skipHidden});
+        const walker = makeWalker(block, slice, { respectCSS, skipHidden });
 
         // State for normal collapsing across nodes
         let visibleCount = 0;
@@ -246,7 +246,7 @@ const BlockText = (() => {
         } = opts || {};
 
         const slice = sliceRange(block, edgeRange, 'after');
-        const walker = makeWalker(block, slice, {respectCSS, skipHidden});
+        const walker = makeWalker(block, slice, { respectCSS, skipHidden });
 
         const NBSP = '\u00A0';
 
@@ -282,9 +282,9 @@ const BlockText = (() => {
 
     function resolveBlockAndBoundary(input, which, opts) {
         const r = collapsedBoundaryRange(input, which);
-        if (!r) return {block: null, edgeRange: null};
-        const block = nearestBlockAncestor(r.startContainer, {respectCSS: opts?.respectCSS !== false});
-        return {block, edgeRange: r};
+        if (!r) return { block: null, edgeRange: null };
+        const block = nearestBlockAncestor(r.startContainer, { respectCSS: opts?.respectCSS !== false });
+        return { block, edgeRange: r };
     }
 
     // --- Public methods ---
@@ -294,7 +294,7 @@ const BlockText = (() => {
      * (counts with HTML whitespace collapsing)
      */
     function isAtBlockStart(input, opts = undefined) {
-        const {block, edgeRange} = resolveBlockAndBoundary(input, 'start', opts);
+        const { block, edgeRange } = resolveBlockAndBoundary(input, 'start', opts);
         if (!block) return false;
         const count = countVisibleInSlice(block, edgeRange, 'before', opts);
         return count === 0;
@@ -306,7 +306,7 @@ const BlockText = (() => {
      * but treats anything in pre-like contexts as visible)
      */
     function isAtBlockEnd(input, opts = undefined) {
-        const {block, edgeRange} = resolveBlockAndBoundary(input, 'end', opts);
+        const { block, edgeRange } = resolveBlockAndBoundary(input, 'end', opts);
         if (!block) return false;
         return !hasAnyVisibleAfter(block, edgeRange, opts);
     }
@@ -319,12 +319,12 @@ const BlockText = (() => {
      */
     function getVisibleOffsetFromBlockStart(input, opts = undefined) {
         const edge = (opts && opts.edge === 'end') ? 'end' : 'start';
-        const {block, edgeRange} = resolveBlockAndBoundary(input, edge, opts);
+        const { block, edgeRange } = resolveBlockAndBoundary(input, edge, opts);
         if (!block) return 0;
         return countVisibleInSlice(block, edgeRange, 'before', opts);
     }
 
-    return {isAtBlockStart, isAtBlockEnd, getVisibleOffsetFromBlockStart};
+    return { isAtBlockStart, isAtBlockEnd, getVisibleOffsetFromBlockStart };
 })();
 
 // Export as global
