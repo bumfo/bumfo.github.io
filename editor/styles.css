@@ -1,0 +1,95 @@
+/* Reset styles */
+html {
+    font: 400 10px/1 sans-serif;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, pre {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    line-height: inherit;
+}
+
+/* Base styles */
+html {
+    font-family: SF Mono, consolas, monospace, sans-serif;
+    color: #333;
+    background-image: linear-gradient(#eee 0.5px, transparent 0.5px);
+    background-size: 100% 22px;
+}
+
+body {
+    font-size: 1.6rem;
+    line-height: 2.2rem;
+    max-width: 35em;
+    margin: 0 auto;
+    padding: 8.8rem 10rem;
+    background-image: linear-gradient(#f4f4f4 0.5px, transparent 0.5px);
+    background-size: 100% 22px;
+    background-position-y: 11px;
+}
+
+/* Editor styles */
+article {
+    border: 1px solid #eee;
+    border-top: none;
+    border-bottom: none;
+    padding: 0.6rem 0 1.6rem 0;
+}
+
+[contenteditable] {
+    outline: none;
+    box-shadow: none;
+}
+
+#history-tracker {
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: 2.2rem;
+}
+
+h1 {
+    font-size: 4.1rem;
+    line-height: 5.5rem;
+    padding-top: 0.7rem;
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    font-size: 3.2rem;
+    line-height: 4.4rem;
+    padding-top: 0.5rem;
+    margin-bottom: 1.7rem;
+}
+
+h3 {
+    font-size: 2.5rem;
+    line-height: 3.3rem;
+    padding-top: 0.2rem;
+    margin-bottom: 2.0rem;
+}
+
+h4 {
+    font-size: 2.0rem;
+    line-height: 3.3rem;
+    padding-top: 0.4rem;
+    margin-bottom: 1.8rem;
+}
+
+h5 {
+    font-weight: 600;
+}
+
+h6 {
+    font-weight: 500;
+}
+
+h5, h6, p {
+    margin-bottom: 1.1rem;
+}
