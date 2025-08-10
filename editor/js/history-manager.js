@@ -82,15 +82,15 @@ class HistoryManager {
     onMutationCommit(mutation, eventType) {
         if (eventType === 'commit') {
             // Skip automatic caret capture for structural operations that handle their own caret positioning
-            if (mutation.type !== 'splitBlock' && mutation.type !== 'mergeBlocks') {
-                // Capture caret state after mutation for redo
-                mutation.caretStateAfter = this.caretTracker.captureCaretState();
-            }
+            // if (mutation.type !== 'splitBlock' && mutation.type !== 'mergeBlocks') {
+            // Capture caret state after mutation for redo
+            mutation.caretStateAfter = this.caretTracker.captureCaretState();
+            // }
 
             // Adjust existing caret states in history for structural changes
-            if (mutation.type === 'splitBlock' || mutation.type === 'mergeBlocks') {
-                this.adjustHistoryCaretStates(mutation);
-            }
+            // if (mutation.type === 'splitBlock' || mutation.type === 'mergeBlocks') {
+            //     this.adjustHistoryCaretStates(mutation);
+            // }
 
             this.pushMutation(mutation);
         }
