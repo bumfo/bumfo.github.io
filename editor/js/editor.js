@@ -5,17 +5,16 @@
 class Editor {
     constructor(editorElement) {
         this.element = editorElement;
-        
+
         // Initialize managers
         this.stateManager = new StateManager();
-        this.selectionManager = new SelectionManager(editorElement);
         this.blockManager = new BlockManager(editorElement, this.stateManager);
         this.contentManager = new ContentManager(this.stateManager);
-        this.historyManager = new HistoryManager(this.stateManager, this.selectionManager);
-        
+        this.historyManager = new HistoryManager(this.stateManager, editorElement);
+
         // Set up event listeners
         this.setupEventListeners();
-        
+
         // Store reference to p4 for demo
         this.p4 = document.getElementById('p4');
     }
@@ -29,10 +28,10 @@ class Editor {
         this.element.addEventListener('keydown', this.onKeyDown.bind(this));
         this.element.addEventListener('beforeinput', this.onBeforeInput.bind(this));
         this.element.addEventListener('paste', this.onPaste.bind(this));
-        
+
         // Mouse events
         this.element.addEventListener('mousedown', this.onMouseDown.bind(this));
-        
+
         // Button events (demo)
         const btn = document.getElementById('btn');
         if (btn) {
@@ -84,7 +83,7 @@ class Editor {
      * Handle Backspace key
      */
     handleBackspace(e) {
-        const range = this.selectionManager.getCurrentRange();
+        const range = Carets.getCurrentRange();
         if (!range) {
             e.preventDefault();
             return;
@@ -101,7 +100,7 @@ class Editor {
         // Check if at block start
         if (BlockText.isAtBlockStart(range)) {
             e.preventDefault();
-            
+
             // If not a paragraph, convert to paragraph
             if (block.tagName !== 'P') {
                 this.blockManager.formatBlock(block, 'P');
@@ -114,7 +113,7 @@ class Editor {
      * Handle Delete key
      */
     handleDelete(e) {
-        const range = this.selectionManager.getCurrentRange();
+        const range = Carets.getCurrentRange();
         if (!range) {
             e.preventDefault();
             return;
@@ -139,13 +138,13 @@ class Editor {
      * Handle beforeinput events
      */
     onBeforeInput(e) {
-        const selection = this.selectionManager.getSelection();
+        const selection = window.getSelection();
         if (!selection.isCollapsed) {
             // Delete selected content before inserting new content
             const range = selection.getRangeAt(0);
             this.stateManager.commit({
                 type: 'deleteContent',
-                range: range
+                range: range,
             });
         }
     }
@@ -169,7 +168,7 @@ class Editor {
                 el = el.parentNode;
                 if (!el || el === document.body) return;
             }
-            
+
             // Make block contenteditable if needed
             const contenteditable = el.hasAttribute('contenteditable') || this.element.hasAttribute('contenteditable');
             if (!contenteditable) {
@@ -192,12 +191,12 @@ class Editor {
      */
     addLine() {
         if (!this.p4 || this.element.contains(this.p4)) return false;
-        
+
         return this.stateManager.commit({
             type: 'insertElement',
             element: this.p4,
             parent: this.element,
-            before: null
+            before: null,
         });
     }
 
@@ -206,10 +205,10 @@ class Editor {
      */
     deleteLine() {
         if (!this.p4 || !this.element.contains(this.p4)) return false;
-        
+
         return this.stateManager.commit({
             type: 'removeElement',
-            element: this.p4
+            element: this.p4,
         });
     }
 
@@ -230,7 +229,7 @@ class Editor {
             blocks: this.blockManager.getAllBlocks().length,
             historySize: this.historyManager.getState().stack.length,
             canUndo: this.historyManager.canUndo(),
-            canRedo: this.historyManager.canRedo()
+            canRedo: this.historyManager.canRedo(),
         };
     }
 
@@ -243,7 +242,7 @@ class Editor {
         this.element.removeEventListener('beforeinput', this.onBeforeInput.bind(this));
         this.element.removeEventListener('paste', this.onPaste.bind(this));
         this.element.removeEventListener('mousedown', this.onMouseDown.bind(this));
-        
+
         // Destroy managers
         this.historyManager.destroy();
     }

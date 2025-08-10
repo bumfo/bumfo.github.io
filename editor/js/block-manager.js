@@ -119,8 +119,7 @@ class BlockManager {
                     range.setStart(newBlock, 0);
                     range.collapse(true);
                 }
-                selection.removeAllRanges();
-                selection.addRange(range);
+                Carets.setRange(range);
             }
         }
     }

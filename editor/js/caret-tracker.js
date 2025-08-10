@@ -167,9 +167,7 @@ class CaretTracker {
         try {
             const range = this.createRangeFromCaretState(caretState);
             if (range) {
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                Carets.setRange(range);
                 return true;
             }
         } catch (error) {

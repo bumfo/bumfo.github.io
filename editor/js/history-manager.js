@@ -3,11 +3,11 @@
  * Uses a hidden contenteditable element to hook into browser's native undo/redo
  */
 class HistoryManager {
-    constructor(stateManager, selectionManager) {
+    constructor(stateManager, editorElement) {
         this.stateManager = stateManager;
-        this.selectionManager = selectionManager;
+        this.editor = editorElement;
         this.historyStack = [];
-        this.caretTracker = new CaretTracker(selectionManager.editor);
+        this.caretTracker = new CaretTracker(editorElement);
         this.cachedSelectionRect = null; // Cache bounding rect for iOS optimization
 
         // Create hidden contenteditable for browser undo/redo integration
