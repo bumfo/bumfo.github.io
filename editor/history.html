@@ -98,7 +98,7 @@ btn.addEventListener('click', function () {
 })
 
 div5.addEventListener('beforeinput', function (e) {
-    saveSelection()
+    // saveSelection()
 })
 
 function replaceChild(newEl, oldEl) {
@@ -159,9 +159,9 @@ div5.addEventListener('input', function (e) {
 })
 
 div5.addEventListener('focus', function (e) {
-    e.preventDefault()
-    e.target.blur()
-    requestAnimationFrame(restoreSelection)
+    // e.preventDefault()
+    // e.target.blur()
+    // requestAnimationFrame(restoreSelection)
 })
 
 document.querySelectorAll('[contenteditable]').forEach(el => {
@@ -254,7 +254,9 @@ editor.addEventListener('keydown', function (e) {
 
                 } else {
                     if (block.tagName !== 'P') {
+                        saveSelection()
                         formatBlock(block, 'P')
+                        restoreSelection()
                     }
                 }
 

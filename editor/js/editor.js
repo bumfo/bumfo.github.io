@@ -182,9 +182,9 @@ class Editor {
      * Handle button click (demo)
      */
     onButtonClick() {
-        this.selectionManager.saveSelection();
+        // this.selectionManager.saveSelection();
         this.deleteLine();
-        this.selectionManager.restoreSelection();
+        // this.selectionManager.restoreSelection();
     }
 
     /**

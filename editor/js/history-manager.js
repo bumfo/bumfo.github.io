@@ -103,10 +103,11 @@ class HistoryManager {
      * Handle beforeinput event on tracker
      */
     onBeforeInput(e) {
-        // Save current selection before undo/redo
-        if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
-            this.selectionManager.saveSelection();
-        }
+        // No need to save selection - StateManager handles caret tracking
+        // if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
+        //     // Just prevent any potential interference
+        //     e.preventDefault();
+        // }
     }
 
     /**
@@ -129,9 +130,9 @@ class HistoryManager {
      * Handle focus on tracker (prevent it and restore selection)
      */
     onTrackerFocus(e) {
-        e.preventDefault();
-        e.target.blur();
-        requestAnimationFrame(() => this.selectionManager.restoreSelection());
+        // e.preventDefault();
+        // e.target.blur();
+        // requestAnimationFrame(() => this.selectionManager.restoreSelection());
     }
 
     /**
