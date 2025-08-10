@@ -3,6 +3,7 @@
 <title>Editor</title>
 
 <article id="editor" contenteditable>
+    <h2>heading2</h2>
     <h3>heading3</h3>
     <p>div1</p>
     <p>div2</p>
@@ -36,7 +37,7 @@ function execCommand(command, value = null) {
 function saveSelection() {
     let selection = window.getSelection()
     let range = selection.getRangeAt(0)
-    console.log(range)
+    // console.log(range)
     savedRange = range
 }
 
