@@ -2,12 +2,13 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Editor</title>
 
-<div id="editor" contenteditable>
-    <div>div1</div>
-    <div>div2</div>
-    <div>div3</div>
-    <div id="div4">div4</div>
-</div>
+<article id="editor" contenteditable>
+    <h3>heading3</h3>
+    <p>div1</p>
+    <p>div2</p>
+    <p>div3</p>
+    <p id="p4">p4</p>
+</article>
 
 <button id="btn">Do it</button>
 <div contenteditable id="div5" tabindex="-1"></div>
@@ -17,7 +18,7 @@
 
 let editor = document.querySelector('#editor')
 let btn = document.querySelector('#btn')
-let div4 = document.querySelector('#div4')
+let p4 = document.querySelector('#p4')
 let div5 = document.querySelector('#div5')
 
 let savedRange = null
@@ -48,8 +49,8 @@ function restoreSelection() {
 }
 
 function addLine(history = false) {
-    if (editor.contains(div4)) return false
-    editor.insertBefore(div4, null)
+    if (editor.contains(p4)) return false
+    editor.insertBefore(p4, null)
 
     if (!history) {
         let tmpRange = document.createRange()
@@ -62,8 +63,8 @@ function addLine(history = false) {
 }
 
 function deleteLine(history = false) {
-    if (!editor.contains(div4)) return false
-    div4.remove()
+    if (!editor.contains(p4)) return false
+    p4.remove()
 
     if (!history) {
         let tmpRange = document.createRange()
@@ -71,7 +72,7 @@ function deleteLine(history = false) {
         let selection = window.getSelection()
         selection.removeAllRanges()
         selection.addRange(tmpRange)
-        execCommand('insertText', 'delete div4')
+        execCommand('insertText', 'delete p4')
     }
 }
 
