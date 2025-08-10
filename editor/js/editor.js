@@ -266,8 +266,8 @@ class Editor {
                 const isAtEnd = textOffset >= block.textContent.length;
 
                 if (isAtEnd) {
-                    // Fast path: insert new block after current
-                    this.blockManager.insertBlockAfter(block);
+                    let tag = /^H[1-6]$/.test(block.tagName) ? 'P' : block.tagName;
+                    this.blockManager.insertBlockAfter(block, '', tag);
                 } else {
                     console.log('split block:', block);
                     // Regular split at cursor position
