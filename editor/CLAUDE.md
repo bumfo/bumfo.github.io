@@ -8,25 +8,80 @@ This is a custom rich text editor built with vanilla HTML, CSS, and JavaScript. 
 
 - Contenteditable-based editing with custom keyboard handling
 - Block-level element manipulation (headings, paragraphs)
-- Custom undo/redo history system
+- Custom undo/redo history system with DOM-based state tracking
 - Advanced text selection and range management
 - Block text utilities for layout-free text processing
+- Clean separation of concerns with specialized managers
 
 ## Architecture
 
-### Core Components
+### Core Design Principles
 
-- **Single HTML file structure**: `history.html` contains the complete editor implementation
-- **Editor element**: Main contenteditable article with id `#editor`
-- **History system**: Custom undo/redo using `historyStack` array and hidden div for state tracking
-- **Block text utilities**: `BlockText` module provides advanced text position detection without layout calculations
+- **Separation of Concerns**: Each manager handles its own domain and registers its own handlers
+- **DOM-based State**: History index stored in DOM to prevent state drift
+- **Mutation-based Updates**: All state changes are expressed as mutations
+- **Clean Event Flow**: User actions (commits) are recorded, history operations (replay/revert) are not
 
-### Key Functions
+### Component Structure
 
-- `saveSelection()` / `restoreSelection()`: Manages cursor position across operations
-- `formatBlock(el, tag)`: Converts block elements between different HTML tags (e.g., P to H2)
-- `addLine()` / `deleteLine()`: Dynamic content manipulation with history tracking
-- `appendHistory()`: Records operations for undo/redo functionality
+#### State Management System
+
+- **StateManager**: Central mutation handler with clean interface
+  - `commit(mutation)`: Apply user-initiated mutation (recorded in history)
+  - `replay(mutation)`: Replay history mutation (not recorded)
+  - `revert(mutation)`: Revert mutation for undo (not recorded)
+  - Single internal `_executeMutation()` method avoids duplication
+  - Commit listeners only notified for user actions
+
+#### Specialized Managers
+
+- **Editor**: High-level orchestration and user interaction
+  - Event handling (keyboard, mouse, paste prevention)
+  - Coordination between managers
+  - No direct DOM manipulation or handler registration
+
+- **BlockManager**: Block-level operations
+  - Self-registers handlers: `formatBlock`, `insertElement`, `removeElement`
+  - High-level methods: `formatBlock()`, `insertBlock()`, `removeBlock()`
+  - Inline apply/revert functions for clean implementation
+
+- **ContentManager**: Text and range operations
+  - Self-registers handlers: `textContent`, `deleteContent`
+  - Handles text content changes and range deletions
+
+- **SelectionManager**: Selection and cursor management
+  - `saveSelection()` / `restoreSelection()`: Preserves cursor across operations
+  - Works with Range and Selection APIs
+
+- **HistoryManager**: Undo/redo functionality
+  - Uses hidden contenteditable div to hook into browser's native undo/redo
+  - DOM-based index tracking (no separate currentIndex variable)
+  - Listens only to commit events (no circular dependencies)
+  - Direct `revert()` for undo, `replay()` for redo
+
+### Mutation Flow
+
+1. **User Action** → `stateManager.commit(mutation)` → Records in history
+2. **Undo** → `stateManager.revert(mutation)` → No recording
+3. **Redo** → `stateManager.replay(mutation)` → No recording
+
+### Key Implementation Details
+
+#### History System
+
+- **DOM-based Index**: History index stored in hidden div's innerText
+  - Empty div = index 0
+  - Prevents drift between internal state and browser undo/redo
+- **Clean Event Separation**: Only commits trigger history recording
+- **No Flags Needed**: Clean architectural separation eliminates circular dependencies
+
+#### BlockText Module
+
+Advanced text utilities that work without forcing layout calculations:
+- `isAtBlockStart()` / `isAtBlockEnd()`: Detect cursor position at block boundaries
+- `getVisibleOffsetFromBlockStart()`: Calculate text offset with whitespace collapsing
+- Handles CSS `white-space` properties, hidden elements, and atomic inlines
+- Supports both CSS-aware and fallback block detection
 
 ### Event Handling
 
@@ -35,17 +90,34 @@ This is a custom rich text editor built with vanilla HTML, CSS, and JavaScript. 
 - **Mouse events**: Dynamic contenteditable attribute management
 - **Paste prevention**: All paste operations are blocked
 
-### BlockText Module
+## Code Style Guidelines
 
-Advanced text utilities that work without forcing layout calculations:
-- `isAtBlockStart()` / `isAtBlockEnd()`: Detect cursor position at block boundaries
-- `getVisibleOffsetFromBlockStart()`: Calculate text offset with whitespace collapsing
-- Handles CSS `white-space` properties, hidden elements, and atomic inlines
-- Supports both CSS-aware and fallback block detection
+- **No redundant variables**: Use direct object literals for mutations
+- **Inline handlers**: Define apply/revert inline unless complex
+- **DRY principle**: Avoid duplication, consolidate common patterns
+- **Self-registration**: Managers register their own handlers in constructor
+
+## File Structure
+
+```
+editor/
+├── index.html                 # Main entry point
+├── history.html              # Original prototype implementation
+├── js/
+│   ├── editor.js            # Main editor orchestration
+│   ├── state-manager.js     # Central mutation handling
+│   ├── block-manager.js     # Block-level operations
+│   ├── content-manager.js   # Text/range operations
+│   ├── selection-manager.js # Selection/cursor management
+│   ├── history-manager.js   # Undo/redo functionality
+│   └── block-text.js        # Text position utilities
+└── css/
+    └── editor.css           # Editor styles
+```
 
 ## Development Notes
 
 - No build system or package.json - pure vanilla implementation
 - No external dependencies or frameworks
-- Self-contained in a single HTML file with embedded CSS and JavaScript
 - Uses modern browser APIs (Range, Selection, TreeWalker, etc.)
+- Each manager is self-contained with both interface and implementation
