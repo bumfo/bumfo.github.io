@@ -48,31 +48,43 @@ function restoreSelection() {
     }
 }
 
+let historyStack = []
+
+function appendHistory(value) {
+    let id = div5.innerText | 0
+    if (id < historyStack.length) {
+        historyStack = historyStack.slice(0, id)
+    }
+
+    historyStack.push(value)
+
+    let tmpRange = document.createRange()
+    tmpRange.selectNodeContents(div5)
+    let selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(tmpRange)
+    execCommand('insertText', historyStack.length)
+
+    console.log(historyStack)
+}
+
 function addLine(history = false) {
     if (editor.contains(p4)) return false
-    editor.insertBefore(p4, null)
+    let pos = null
+    editor.insertBefore(p4, pos)
 
     if (!history) {
-        let tmpRange = document.createRange()
-        tmpRange.selectNodeContents(div5)
-        let selection = window.getSelection()
-        selection.removeAllRanges()
-        selection.addRange(tmpRange)
-        execCommand('delete')
+        appendHistory({type: 'add', el: p4, pos})
     }
 }
 
 function deleteLine(history = false) {
     if (!editor.contains(p4)) return false
+    let pos = p4.nextSibling
     p4.remove()
 
     if (!history) {
-        let tmpRange = document.createRange()
-        tmpRange.selectNodeContents(div5)
-        let selection = window.getSelection()
-        selection.removeAllRanges()
-        selection.addRange(tmpRange)
-        execCommand('insertText', 'delete p4')
+        appendHistory({type: 'remove', el: p4, pos})
     }
 }
 
@@ -87,15 +99,59 @@ btn.addEventListener('click', function () {
 div5.addEventListener('beforeinput', function (e) {
     saveSelection()
 })
+
+function replaceChild(newEl, oldEl) {
+    while (oldEl.firstChild) {
+        newEl.appendChild(oldEl.firstChild)
+    }
+    oldEl.parentNode.replaceChild(newEl, oldEl)
+}
+
 div5.addEventListener('input', function (e) {
-    console.log(e.inputType, e)
+    // console.log(e.inputType, e)
+
+    function handleUndo() {
+        let id = div5.innerText | 0
+        let op = historyStack[id]
+        console.log('undo op', op)
+        switch (op.type) {
+            case 'remove':
+                editor.insertBefore(op.el, op.pos)
+                break
+            case 'add':
+                op.el.remove()
+                break
+            case 'formatBlock':
+                replaceChild(op.oldEl, op.newEl)
+                break
+        }
+    }
+
+    function handleRedo() {
+        let id = (div5.innerText | 0) - 1
+        if (id < 0) return
+        let op = historyStack[id]
+        console.log('redo op', op)
+        switch (op.type) {
+            case 'remove':
+                op.el.remove()
+                break
+            case 'add':
+                editor.insertBefore(op.el, op.pos)
+                break
+            case 'formatBlock':
+                replaceChild(op.newEl, op.oldEl)
+                break
+        }
+    }
+
     switch (e.inputType) {
         case 'historyUndo':
-            addLine(true)
+            handleUndo()
             restoreSelection()
             break
         case 'historyRedo':
-            deleteLine(true)
+            handleRedo()
             restoreSelection()
             break
     }
