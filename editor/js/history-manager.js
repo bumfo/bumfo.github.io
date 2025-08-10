@@ -7,11 +7,13 @@ class HistoryManager {
         this.stateManager = stateManager;
         this.selectionManager = selectionManager;
         this.historyStack = [];
+        this.caretTracker = new CaretTracker(selectionManager.editor);
 
         // Create hidden contenteditable for browser undo/redo integration
         this.createHiddenTracker();
         
-        // Listen to commits for history recording
+        // Listen to commits for history recording and caret capture
+        this.stateManager.addBeforeCommitListener(this.onBeforeCommit.bind(this));
         this.stateManager.addCommitListener(this.onMutationCommit.bind(this));
     }
 
@@ -31,7 +33,7 @@ class HistoryManager {
             user-select: none;
             pointer-events: none;
         `;
-        this.tracker.setAttribute('aria-hidden', 'true');
+        // this.tracker.setAttribute('aria-hidden', 'true');
         document.body.appendChild(this.tracker);
 
         // Listen to input events for undo/redo
@@ -48,11 +50,21 @@ class HistoryManager {
     }
 
     /**
+     * Handle before commit to capture caret state
+     */
+    onBeforeCommit(mutation) {
+        // Capture current caret state for undo
+        mutation.caretStateBefore = this.caretTracker.captureCaretState();
+    }
+
+    /**
      * Handle committed mutations from the state manager
      * Only track 'commit' mutations (user mutations), not 'revert' mutations
      */
     onMutationCommit(mutation, eventType) {
         if (eventType === 'commit') {
+            // Capture caret state after mutation for redo
+            mutation.caretStateAfter = this.caretTracker.captureCaretState();
             this.pushMutation(mutation);
         }
     }
@@ -77,15 +89,19 @@ class HistoryManager {
 
     /**
      * Update the hidden tracker element with current index
+     * MUST use execCommand for browser to track history properly
      */
     updateTracker() {
-        // Use the tracker to store current stack length
+        // Save current selection to avoid interference with editor
+        const selection = window.getSelection();
+        let savedRange = null;
+        if (selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+        // Select tracker content and update via execCommand
         const range = document.createRange();
         range.selectNodeContents(this.tracker);
-
-        const selection = window.getSelection();
-        const currentSelection = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-
         selection.removeAllRanges();
         selection.addRange(range);
 
@@ -93,9 +109,13 @@ class HistoryManager {
         document.execCommand('insertText', false, String(this.historyStack.length));
 
         // Restore original selection
-        if (currentSelection) {
-            selection.removeAllRanges();
-            selection.addRange(currentSelection);
+        selection.removeAllRanges();
+        if (savedRange) {
+            try {
+                selection.addRange(savedRange);
+            } catch (e) {
+                // Range may be invalid after DOM changes, ignore
+            }
         }
     }
 
@@ -117,11 +137,9 @@ class HistoryManager {
         switch (e.inputType) {
             case 'historyUndo':
                 this.undo();
-                this.selectionManager.restoreSelection();
                 break;
             case 'historyRedo':
                 this.redo();
-                this.selectionManager.restoreSelection();
                 break;
         }
     }
@@ -146,7 +164,14 @@ class HistoryManager {
         if (!mutation) return false;
 
         // Revert the mutation (no history recording)
-        return this.stateManager.revert(mutation);
+        const success = this.stateManager.revert(mutation);
+        
+        // Restore caret state for undo
+        if (success && mutation.caretStateBefore) {
+            this.caretTracker.restoreCaretState(mutation.caretStateBefore);
+        }
+        
+        return success;
     }
 
     /**
@@ -162,7 +187,14 @@ class HistoryManager {
         if (!mutation) return false;
 
         // Replay the forward mutation (no history recording)
-        return this.stateManager.replay(mutation);
+        const success = this.stateManager.replay(mutation);
+        
+        // Restore caret state for redo
+        if (success && mutation.caretStateAfter) {
+            this.caretTracker.restoreCaretState(mutation.caretStateAfter);
+        }
+        
+        return success;
     }
 
     /**

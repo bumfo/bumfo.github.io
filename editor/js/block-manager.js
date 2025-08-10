@@ -27,6 +27,9 @@ class BlockManager {
                     newEl.appendChild(element.firstChild);
                 }
                 element.parentNode.replaceChild(newEl, element);
+                
+                // Fix caret position after DOM replacement
+                this.fixCaretAfterFormatBlock(newEl);
             },
             
             revert: (mutation) => {
@@ -35,6 +38,9 @@ class BlockManager {
                     oldElement.appendChild(newElement.firstChild);
                 }
                 newElement.parentNode.replaceChild(oldElement, newElement);
+                
+                // Fix caret position after DOM replacement
+                this.fixCaretAfterFormatBlock(oldElement);
             }
         });
 
@@ -87,6 +93,49 @@ class BlockManager {
         }
         
         return block === this.editor ? null : block;
+    }
+
+    /**
+     * Fix caret position after formatBlock operation
+     * Handles the case where caret might be at editor level after DOM replacement
+     */
+    fixCaretAfterFormatBlock(newBlock) {
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
+        
+        // Check if caret is at editor level pointing to this block
+        if (range.startContainer === this.editor) {
+            const blockIndex = Array.from(this.editor.children).indexOf(newBlock);
+            if (blockIndex >= 0 && range.startOffset === blockIndex) {
+                // Move caret to start of the new block
+                const firstTextNode = this.getFirstTextNode(newBlock);
+                if (firstTextNode) {
+                    range.setStart(firstTextNode, 0);
+                    range.collapse(true);
+                } else {
+                    // No text node, place at start of block
+                    range.setStart(newBlock, 0);
+                    range.collapse(true);
+                }
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    }
+
+    /**
+     * Get the first text node in a block
+     */
+    getFirstTextNode(block) {
+        const walker = document.createTreeWalker(
+            block,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+        return walker.nextNode();
     }
 
     /**
