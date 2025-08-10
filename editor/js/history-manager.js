@@ -8,10 +8,11 @@ class HistoryManager {
         this.selectionManager = selectionManager;
         this.historyStack = [];
         this.caretTracker = new CaretTracker(selectionManager.editor);
+        this.cachedSelectionRect = null; // Cache bounding rect for iOS optimization
 
         // Create hidden contenteditable for browser undo/redo integration
         this.createHiddenTracker();
-        
+
         // Listen to commits for history recording and caret capture
         this.stateManager.addBeforeCommitListener(this.onBeforeCommit.bind(this));
         this.stateManager.addCommitListener(this.onMutationCommit.bind(this));
@@ -32,8 +33,9 @@ class HistoryManager {
         this.tracker.style.cssText = `
             user-select: none;
             pointer-events: none;
+            position: absolute;
         `;
-        // this.tracker.setAttribute('aria-hidden', 'true');
+        this.tracker.setAttribute('aria-hidden', 'true');
         document.body.appendChild(this.tracker);
 
         // Listen to input events for undo/redo
@@ -53,8 +55,25 @@ class HistoryManager {
      * Handle before commit to capture caret state
      */
     onBeforeCommit(mutation) {
+        // Cache selection bounding rect before DOM changes (iOS optimization)
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            this.cachedSelectionRect = range.getBoundingClientRect();
+        }
+        
         // Capture current caret state for undo
         mutation.caretStateBefore = this.caretTracker.captureCaretState();
+    }
+
+    /**
+     * Position tracker using cached selection rect (call only when needed)
+     */
+    positionTrackerFromCache() {
+        if (this.cachedSelectionRect) {
+            this.tracker.style.top = this.cachedSelectionRect.top + 'px';
+            this.tracker.style.left = (this.cachedSelectionRect.left - 100) + 'px';
+        }
     }
 
     /**
@@ -98,6 +117,9 @@ class HistoryManager {
         if (selection.rangeCount > 0) {
             savedRange = selection.getRangeAt(0).cloneRange();
         }
+
+        // Position tracker from cached rect before potential focus (iOS optimization)
+        this.positionTrackerFromCache();
 
         // Select tracker content and update via execCommand
         const range = document.createRange();
@@ -165,12 +187,12 @@ class HistoryManager {
 
         // Revert the mutation (no history recording)
         const success = this.stateManager.revert(mutation);
-        
+
         // Restore caret state for undo
         if (success && mutation.caretStateBefore) {
             this.caretTracker.restoreCaretState(mutation.caretStateBefore);
         }
-        
+
         return success;
     }
 
@@ -181,19 +203,19 @@ class HistoryManager {
         // For redo, DOM index points to current state, so we need the previous mutation
         const currentIndex = this.currentIndex();
         if (currentIndex === 0) return false;
-        
+
         const operationIndex = currentIndex - 1;
         const mutation = this.historyStack[operationIndex];
         if (!mutation) return false;
 
         // Replay the forward mutation (no history recording)
         const success = this.stateManager.replay(mutation);
-        
+
         // Restore caret state for redo
         if (success && mutation.caretStateAfter) {
             this.caretTracker.restoreCaretState(mutation.caretStateAfter);
         }
-        
+
         return success;
     }
 
