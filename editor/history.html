@@ -116,7 +116,7 @@ editor.addEventListener('mousedown', function (e) {
         while (el.parentNode !== editor) {
             el = el.parentNode
         }
-        let contenteditable = el.hasAttribute('contenteditable')
+        let contenteditable = el.hasAttribute('contenteditable') || editor.hasAttribute('contenteditable')
         if (!contenteditable) {
             console.log('set contenteditable')
             el.setAttribute('contenteditable', '')
