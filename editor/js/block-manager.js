@@ -27,9 +27,6 @@ class BlockManager {
                     newEl.appendChild(element.firstChild);
                 }
                 element.parentNode.replaceChild(newEl, element);
-                
-                // Fix caret position after DOM replacement
-                this.fixCaretAfterFormatBlock(newEl);
             },
             
             revert: (mutation) => {
@@ -38,9 +35,6 @@ class BlockManager {
                     oldElement.appendChild(newElement.firstChild);
                 }
                 newElement.parentNode.replaceChild(oldElement, newElement);
-                
-                // Fix caret position after DOM replacement
-                this.fixCaretAfterFormatBlock(oldElement);
             }
         });
 
@@ -66,6 +60,99 @@ class BlockManager {
             revert: (mutation) => {
                 const { element, parent, nextSibling } = mutation;
                 parent.insertBefore(element, nextSibling);
+            }
+        });
+
+        // Split block handler
+        this.stateManager.registerHandler('splitBlock', {
+            apply: (mutation) => {
+                const { block, splitOffset, newBlockTag } = mutation;
+                
+                // Store block index for caret tracking
+                const blocks = Array.from(this.editor.children);
+                mutation.originalBlockIndex = blocks.indexOf(block);
+                
+                // Create new block element
+                const newBlock = document.createElement(newBlockTag || block.tagName);
+                
+                // Store references for revert
+                mutation.newBlock = newBlock;
+                mutation.originalTextContent = block.textContent;
+                mutation.splitOffset = splitOffset;
+                
+                // Split the text content
+                const textContent = block.textContent;
+                const beforeText = textContent.substring(0, splitOffset);
+                const afterText = textContent.substring(splitOffset);
+                
+                // Update original block
+                block.textContent = beforeText;
+                newBlock.textContent = afterText;
+                
+                // Insert new block after original
+                block.parentNode.insertBefore(newBlock, block.nextSibling);
+                
+                // Store new block index and caret state for redo (cursor at start of new block)
+                mutation.newBlockIndex = mutation.originalBlockIndex + 1;
+                mutation.caretStateAfter = CaretState.collapsed(mutation.newBlockIndex, 0);
+            },
+            
+            revert: (mutation) => {
+                const { block, newBlock, originalTextContent } = mutation;
+                
+                // Remove the new block
+                newBlock.remove();
+                
+                // Restore original text content
+                block.textContent = originalTextContent;
+            }
+        });
+
+        // Merge blocks handler  
+        this.stateManager.registerHandler('mergeBlocks', {
+            apply: (mutation) => {
+                const { firstBlock, secondBlock } = mutation;
+                
+                // Store block indices and content for revert and caret tracking
+                const blocks = Array.from(this.editor.children);
+                mutation.firstBlockIndex = blocks.indexOf(firstBlock);
+                mutation.secondBlockIndex = blocks.indexOf(secondBlock);
+                mutation.firstBlockContent = firstBlock.textContent;
+                mutation.secondBlockContent = secondBlock.textContent;
+                mutation.mergeOffset = firstBlock.textContent.length;
+                
+                // Store second block's tag for proper restoration
+                mutation.secondBlockTag = secondBlock.tagName;
+                
+                // Set caret state for after merge (cursor at merge point where first block ends)
+                mutation.caretStateAfter = CaretState.collapsed(mutation.firstBlockIndex, mutation.mergeOffset);
+                
+                // Merge content
+                firstBlock.textContent = firstBlock.textContent + secondBlock.textContent;
+                
+                // Remove second block
+                secondBlock.remove();
+                
+                // Restore caret to merge point immediately after DOM changes
+                const caretTracker = window.editor?.caretTracker;
+                if (caretTracker) {
+                    caretTracker.restoreCaretState(mutation.caretStateAfter);
+                }
+            },
+            
+            revert: (mutation) => {
+                const { firstBlock, firstBlockContent, secondBlockContent, secondBlockTag } = mutation;
+                
+                // Restore original content
+                firstBlock.textContent = firstBlockContent;
+                
+                // Re-create second block with correct tag
+                const secondBlock = document.createElement(secondBlockTag);
+                secondBlock.textContent = secondBlockContent;
+                mutation.secondBlock = secondBlock; // Update reference
+                
+                // Re-insert second block
+                firstBlock.parentNode.insertBefore(secondBlock, firstBlock.nextSibling);
             }
         });
     }
@@ -201,18 +288,26 @@ class BlockManager {
     }
 
     /**
-     * Split a block at the current selection point
-     * @param {Range} range - The range where to split
+     * Split a block at the specified text offset
+     * @param {Element} block - The block to split
+     * @param {number} offset - Text offset where to split
+     * @param {string} newBlockTag - Optional tag for new block (defaults to same as original)
      * @returns {Element|null} The new block created after split
      */
-    splitBlock(range) {
-        if (!range || range.collapsed) return null;
+    splitBlock(block, offset, newBlockTag = null) {
+        if (!this.isBlock(block)) return null;
         
-        const block = this.getBlockForNode(range.startContainer);
-        if (!block) return null;
+        const success = this.stateManager.commit({
+            type: 'splitBlock',
+            block: block,
+            splitOffset: offset,
+            newBlockTag: newBlockTag
+        });
         
-        // TODO: Implement block splitting logic
-        // This would extract content after the range into a new block
+        if (success) {
+            // Find the new block that was created
+            return block.nextElementSibling;
+        }
         return null;
     }
 
@@ -224,11 +319,27 @@ class BlockManager {
      */
     mergeBlocks(firstBlock, secondBlock) {
         if (!this.isBlock(firstBlock) || !this.isBlock(secondBlock)) return false;
-        if (firstBlock.nextSibling !== secondBlock) return false;
+        if (firstBlock.nextElementSibling !== secondBlock) return false;
         
-        // TODO: Implement block merging logic
-        // This would move content from secondBlock to firstBlock
-        return false;
+        return this.stateManager.commit({
+            type: 'mergeBlocks',
+            firstBlock: firstBlock,
+            secondBlock: secondBlock
+        });
+    }
+
+    /**
+     * Merge current block with previous block
+     * @param {Element} block - The block to merge with its previous sibling
+     * @returns {boolean} Whether the merge was successful
+     */
+    mergeWithPrevious(block) {
+        if (!this.isBlock(block)) return false;
+        
+        const previousBlock = block.previousElementSibling;
+        if (!previousBlock || !this.isBlock(previousBlock)) return false;
+        
+        return this.mergeBlocks(previousBlock, block);
     }
 
     /**

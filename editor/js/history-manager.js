@@ -3,11 +3,10 @@
  * Uses a hidden contenteditable element to hook into browser's native undo/redo
  */
 class HistoryManager {
-    constructor(stateManager, editorElement) {
+    constructor(stateManager, caretTracker) {
         this.stateManager = stateManager;
-        this.editor = editorElement;
+        this.caretTracker = caretTracker;
         this.historyStack = [];
-        this.caretTracker = new CaretTracker(editorElement);
         this.cachedSelectionRect = null; // Cache bounding rect for iOS optimization
 
         // Create hidden contenteditable for browser undo/redo integration
@@ -82,10 +81,50 @@ class HistoryManager {
      */
     onMutationCommit(mutation, eventType) {
         if (eventType === 'commit') {
-            // Capture caret state after mutation for redo
-            mutation.caretStateAfter = this.caretTracker.captureCaretState();
+            // Skip automatic caret capture for structural operations that handle their own caret positioning
+            if (mutation.type !== 'splitBlock' && mutation.type !== 'mergeBlocks') {
+                // Capture caret state after mutation for redo
+                mutation.caretStateAfter = this.caretTracker.captureCaretState();
+            }
+            
+            // Adjust existing caret states in history for structural changes
+            if (mutation.type === 'splitBlock' || mutation.type === 'mergeBlocks') {
+                this.adjustHistoryCaretStates(mutation);
+            }
+            
             this.pushMutation(mutation);
         }
+    }
+
+    /**
+     * Adjust caret states in history stack after structural changes
+     */
+    adjustHistoryCaretStates(mutation) {
+        this.historyStack.forEach(historyMutation => {
+            if (historyMutation.caretStateBefore) {
+                if (mutation.type === 'splitBlock') {
+                    historyMutation.caretStateBefore = Carets.adjustCaretStateAfterSplit(
+                        historyMutation.caretStateBefore, mutation
+                    );
+                } else if (mutation.type === 'mergeBlocks') {
+                    historyMutation.caretStateBefore = Carets.adjustCaretStateAfterMerge(
+                        historyMutation.caretStateBefore, mutation
+                    );
+                }
+            }
+            
+            if (historyMutation.caretStateAfter) {
+                if (mutation.type === 'splitBlock') {
+                    historyMutation.caretStateAfter = Carets.adjustCaretStateAfterSplit(
+                        historyMutation.caretStateAfter, mutation
+                    );
+                } else if (mutation.type === 'mergeBlocks') {
+                    historyMutation.caretStateAfter = Carets.adjustCaretStateAfterMerge(
+                        historyMutation.caretStateAfter, mutation
+                    );
+                }
+            }
+        });
     }
 
     /**

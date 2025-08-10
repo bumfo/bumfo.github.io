@@ -69,6 +69,55 @@ class Carets {
 
         return block === editor ? null : block;
     }
+
+    /**
+     * Adjust caret state after block split operation
+     * @param {CaretState} caretState - Original caret state
+     * @param {Object} splitMutation - Split mutation containing indices and offset
+     * @returns {CaretState} Adjusted caret state
+     */
+    static adjustCaretStateAfterSplit(caretState, splitMutation) {
+        const { originalBlockIndex, splitOffset, newBlockIndex } = splitMutation;
+        
+        if (caretState.startBlockIndex === originalBlockIndex) {
+            // Caret was in the split block
+            if (caretState.startOffset >= splitOffset) {
+                // Caret was after split point, move to new block
+                const newOffset = caretState.startOffset - splitOffset;
+                return CaretState.collapsed(newBlockIndex, newOffset);
+            }
+            // Caret was before split point, stays in original block
+            return caretState;
+        } else if (caretState.startBlockIndex > originalBlockIndex) {
+            // Caret was in a later block, increment block index
+            return CaretState.collapsed(caretState.startBlockIndex + 1, caretState.startOffset);
+        }
+        
+        // Caret was in an earlier block, no change needed
+        return caretState;
+    }
+
+    /**
+     * Adjust caret state after block merge operation
+     * @param {CaretState} caretState - Original caret state
+     * @param {Object} mergeMutation - Merge mutation containing indices and offset
+     * @returns {CaretState} Adjusted caret state
+     */
+    static adjustCaretStateAfterMerge(caretState, mergeMutation) {
+        const { firstBlockIndex, secondBlockIndex, mergeOffset } = mergeMutation;
+        
+        if (caretState.startBlockIndex === secondBlockIndex) {
+            // Caret was in the second (removed) block, move to first block
+            const newOffset = mergeOffset + caretState.startOffset;
+            return CaretState.collapsed(firstBlockIndex, newOffset);
+        } else if (caretState.startBlockIndex > secondBlockIndex) {
+            // Caret was in a later block, decrement block index
+            return CaretState.collapsed(caretState.startBlockIndex - 1, caretState.startOffset);
+        }
+        
+        // Caret was in earlier block or first block, no change needed
+        return caretState;
+    }
 }
 
 // Export as global

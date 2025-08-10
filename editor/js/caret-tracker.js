@@ -422,6 +422,7 @@ class CaretTracker {
         
         return Array.from(this.editor.children).indexOf(blockElement);
     }
+
 }
 
 // Export as globals

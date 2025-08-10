@@ -6,11 +6,14 @@ class Editor {
     constructor(editorElement) {
         this.element = editorElement;
 
+        // Initialize caret tracker shared across managers
+        this.caretTracker = new CaretTracker(editorElement);
+        
         // Initialize managers
         this.stateManager = new StateManager();
         this.blockManager = new BlockManager(editorElement, this.stateManager);
-        this.contentManager = new ContentManager(this.stateManager);
-        this.historyManager = new HistoryManager(this.stateManager, editorElement);
+        this.historyManager = new HistoryManager(this.stateManager, this.caretTracker);
+        this.contentManager = new ContentManager(this.stateManager, this.caretTracker);
 
         // Create bottom editing bar
         this.createEditingBar();
@@ -107,8 +110,30 @@ class Editor {
         const range = Carets.getCurrentRange();
         if (!range || !range.collapsed) return;
         
-        // TODO: Implement splitBlock functionality
-        console.log('Split block functionality not yet implemented');
+        const block = this.blockManager.getBlockForNode(range.startContainer);
+        if (!block) return;
+        
+        // Get text offset within the block using caret tracker
+        try {
+            const logicalPos = this.caretTracker.getLogicalPosition(range.startContainer, range.startOffset);
+            const textOffset = logicalPos.offset;
+            
+            // Split the block at the cursor position
+            const newBlock = this.blockManager.splitBlock(block, textOffset);
+            
+            if (newBlock) {
+                // Create caret state for start of new block
+                const blocks = Array.from(this.element.children);
+                const newBlockIndex = blocks.indexOf(newBlock);
+                const newCaretState = CaretState.collapsed(newBlockIndex, 0);
+                
+                // Restore caret using the tracker
+                this.caretTracker.restoreCaretState(newCaretState);
+                this.updateToolbarState();
+            }
+        } catch (error) {
+            console.warn('Failed to split block:', error);
+        }
     }
 
     /**
@@ -121,8 +146,15 @@ class Editor {
         const block = this.blockManager.getBlockForNode(range.startContainer);
         if (!block) return;
         
-        // TODO: Implement mergeWithPrevious functionality
-        console.log('Merge with previous functionality not yet implemented');
+        const previousBlock = block.previousElementSibling;
+        if (!previousBlock) return;
+        
+        // Perform the merge - caret positioning is handled by the mutation
+        const success = this.blockManager.mergeWithPrevious(block);
+        
+        if (success) {
+            this.updateToolbarState();
+        }
     }
 
     /**
@@ -286,11 +318,7 @@ class Editor {
         const selection = window.getSelection();
         if (!selection.isCollapsed) {
             // Delete selected content before inserting new content
-            const range = selection.getRangeAt(0);
-            this.stateManager.commit({
-                type: 'deleteContent',
-                range: range,
-            });
+            this.contentManager.deleteSelection();
         }
     }
 
