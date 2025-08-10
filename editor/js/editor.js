@@ -112,17 +112,10 @@ class Editor {
             const logicalPos = this.caretTracker.getLogicalPosition(range.startContainer, range.startOffset);
             const textOffset = logicalPos.offset;
 
-            // Split the block at the cursor position
+            // Split the block at the cursor position (caret handled by mutation)
             const newBlock = this.blockManager.splitBlock(block, textOffset);
 
             if (newBlock) {
-                // Create caret state for start of new block
-                const blocks = Array.from(this.element.children);
-                const newBlockIndex = blocks.indexOf(newBlock);
-                const newCaretState = CaretState.collapsed(newBlockIndex, 0);
-
-                // Restore caret using the tracker
-                this.caretTracker.restoreCaretState(newCaretState);
                 this.updateToolbarState();
             }
         } catch (error) {
@@ -158,6 +151,8 @@ class Editor {
 
         let block = this.blockManager.getBlockForNode(range.startContainer);
         if (!block) {
+            console.info('Caret at editor:', range.startContainer, range.startOffset);
+
             range = this.caretTracker.normalizeRange(range);
             Carets.setRange(range);
             block = this.blockManager.getBlockForNode(range.startContainer);
@@ -274,6 +269,7 @@ class Editor {
                     // Fast path: insert new block after current
                     this.blockManager.insertBlockAfter(block);
                 } else {
+                    console.log('split block:', block);
                     // Regular split at cursor position
                     this.blockManager.splitBlock(block, textOffset);
                 }

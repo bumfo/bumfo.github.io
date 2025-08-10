@@ -121,3 +121,19 @@ editor/
 - No external dependencies or frameworks
 - Uses modern browser APIs (Range, Selection, TreeWalker, etc.)
 - Each manager is self-contained with both interface and implementation
+
+## Caret Handling
+
+**Key Rule**: Caret positioning belongs in mutation `apply` handlers ONLY - never in `revert` handlers (history system handles that) or high-level methods (Editor class).
+
+### Core Patterns:
+- **Creating blocks** → Position caret at start of new block
+- **Merging content** → Position caret at merge point  
+- **Preserving position** → Capture before, restore after (e.g., formatBlock)
+- **Deleting blocks** → Move caret to end of previous block
+
+### DRY Helpers:
+- `this.captureCaretState(mutation)` - Captures current position
+- `this.restoreCaretState(mutation, 'caretStateAfter')` - Restores to calculated position
+
+See [CARET-HANDLING.md](./CARET-HANDLING.md) for detailed guidelines and implementation patterns.

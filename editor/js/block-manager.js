@@ -10,6 +10,37 @@ class BlockManager {
     }
 
     /**
+     * DRY helper to capture caret state before DOM changes
+     * @param {Object} mutation - The mutation object to store caret state on
+     */
+    captureCaretState(mutation) {
+        const currentRange = Carets.getCurrentRange();
+        if (currentRange && this.caretTracker) {
+            try {
+                mutation.caretStateBefore = this.caretTracker.captureCaretState();
+            } catch (error) {
+                console.warn('Failed to capture caret state:', error);
+            }
+        }
+    }
+
+    /**
+     * DRY helper to restore caret state after DOM changes
+     * @param {Object} mutation - The mutation object containing caret state
+     * @param {string} stateKey - Key for caret state ('caretStateBefore' or 'caretStateAfter')
+     */
+    restoreCaretState(mutation, stateKey = 'caretStateBefore') {
+        const caretState = mutation[stateKey];
+        if (caretState && this.caretTracker) {
+            try {
+                this.caretTracker.restoreCaretState(caretState);
+            } catch (error) {
+                console.warn('Failed to restore caret state:', error);
+            }
+        }
+    }
+
+    /**
      * Register all block-related mutation handlers
      */
     registerHandlers() {
@@ -17,6 +48,10 @@ class BlockManager {
         this.stateManager.registerHandler('formatBlock', {
             apply: (mutation) => {
                 const { element, newTag } = mutation;
+                
+                // Capture current caret state before DOM changes
+                this.captureCaretState(mutation);
+
                 const newEl = document.createElement(newTag);
 
                 // Store for revert
@@ -28,6 +63,9 @@ class BlockManager {
                     newEl.appendChild(element.firstChild);
                 }
                 element.parentNode.replaceChild(newEl, element);
+
+                // Restore caret position if captured
+                this.restoreCaretState(mutation);
             },
 
             revert: (mutation) => {
@@ -103,6 +141,9 @@ class BlockManager {
                 // Store new block index and caret state for redo (cursor at start of new block)
                 mutation.newBlockIndex = mutation.originalBlockIndex + 1;
                 mutation.caretStateAfter = CaretState.collapsed(mutation.newBlockIndex, 0);
+
+                // Restore caret to new block immediately after DOM changes
+                this.restoreCaretState(mutation, 'caretStateAfter');
             },
 
             revert: (mutation) => {
@@ -139,9 +180,7 @@ class BlockManager {
                 block.remove();
 
                 // Restore caret to end of previous block
-                if (mutation.caretStateAfter && this.caretTracker) {
-                    this.caretTracker.restoreCaretState(mutation.caretStateAfter);
-                }
+                this.restoreCaretState(mutation, 'caretStateAfter');
             },
 
             revert: (mutation) => {
@@ -178,9 +217,7 @@ class BlockManager {
                 secondBlock.remove();
 
                 // Restore caret to merge point immediately after DOM changes
-                if (this.caretTracker) {
-                    this.caretTracker.restoreCaretState(mutation.caretStateAfter);
-                }
+                this.restoreCaretState(mutation, 'caretStateAfter');
             },
 
             revert: (mutation) => {
