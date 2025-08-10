@@ -93,11 +93,8 @@ class Editor {
      * Format current block to specified tag
      */
     formatCurrentBlock(tagName) {
-        const range = Carets.getCurrentRange();
-        if (!range) return;
-
-        const block = this.blockManager.getBlockForNode(range.startContainer);
-        if (!block) return;
+        const { range, block } = this.getNormalizedRangeAndBlock();
+        if (!range || !block) return;
 
         this.blockManager.formatBlock(block, tagName);
         this.updateToolbarState();
@@ -107,11 +104,8 @@ class Editor {
      * Split current block at cursor position
      */
     splitCurrentBlock() {
-        const range = Carets.getCurrentRange();
-        if (!range || !range.collapsed) return;
-
-        const block = this.blockManager.getBlockForNode(range.startContainer);
-        if (!block) return;
+        const { range, block } = this.getNormalizedRangeAndBlock();
+        if (!range || !block || !range.collapsed) return;
 
         // Get text offset within the block using caret tracker
         try {
@@ -140,11 +134,8 @@ class Editor {
      * Merge current block with previous block
      */
     mergeWithPrevious() {
-        const range = Carets.getCurrentRange();
-        if (!range) return;
-
-        const block = this.blockManager.getBlockForNode(range.startContainer);
-        if (!block) return;
+        const { range, block } = this.getNormalizedRangeAndBlock();
+        if (!range || !block) return;
 
         const previousBlock = block.previousElementSibling;
         if (!previousBlock) return;
@@ -155,6 +146,29 @@ class Editor {
         if (success) {
             this.updateToolbarState();
         }
+    }
+
+    /**
+     * Get normalized range and block for user actions
+     * @returns {Object} Object with {range, block} properties (may be undefined)
+     */
+    getNormalizedRangeAndBlock() {
+        let range = Carets.getCurrentRange();
+        if (!range) return {};
+
+        let block = this.blockManager.getBlockForNode(range.startContainer);
+        if (!block) {
+            range = this.caretTracker.normalizeRange(range);
+            Carets.setRange(range);
+            block = this.blockManager.getBlockForNode(range.startContainer);
+        }
+
+        if (!block) {
+            console.warn('Failed to get block:', range.startContainer, range.startOffset);
+            return {};
+        }
+
+        return { range, block };
     }
 
     /**
@@ -244,12 +258,9 @@ class Editor {
     handleEnter(e) {
         if (!e.shiftKey) {
             e.preventDefault();
-            
-            const range = Carets.getCurrentRange();
-            if (!range || !range.collapsed) return;
 
-            const block = this.blockManager.getBlockForNode(range.startContainer);
-            if (!block) return;
+            const { range, block } = this.getNormalizedRangeAndBlock();
+            if (!range || !block || !range.collapsed) return;
 
             try {
                 // Get text offset within the block
@@ -284,7 +295,7 @@ class Editor {
      * Handle Backspace key
      */
     handleBackspace(e) {
-        const range = Carets.getCurrentRange();
+        const { range, block } = this.getNormalizedRangeAndBlock();
         if (!range) {
             e.preventDefault();
             return;
@@ -295,7 +306,6 @@ class Editor {
             return;
         }
 
-        const block = this.blockManager.getBlockForNode(range.startContainer);
         if (!block) return;
 
         // Check if at block start
@@ -327,7 +337,7 @@ class Editor {
      * Handle Delete key
      */
     handleDelete(e) {
-        const range = Carets.getCurrentRange();
+        const { range, block } = this.getNormalizedRangeAndBlock();
         if (!range) {
             e.preventDefault();
             return;
@@ -338,13 +348,12 @@ class Editor {
             return;
         }
 
-        const block = this.blockManager.getBlockForNode(range.startContainer);
         if (!block) return;
 
         // Check if at block end
         if (BlockText.isAtBlockEnd(range)) {
             e.preventDefault();
-            
+
             const nextBlock = block.nextElementSibling;
             if (nextBlock) {
                 const nextBlockText = nextBlock.innerText;
@@ -475,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editorElement) {
         const editor = new Editor(editorElement);
         console.log('Editor initialized', editor.getStats());
-        
+
         // Optional: expose editor for debugging (can be removed in production)
         if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
             window.editor = editor;
