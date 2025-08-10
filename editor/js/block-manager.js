@@ -302,29 +302,6 @@ class BlockManager {
         });
     }
 
-    /**
-     * Insert a new block element
-     * @param {string} tagName - The tag name for the new block
-     * @param {string} content - Optional content for the block
-     * @param {Element} beforeBlock - Optional block to insert before
-     * @returns {Element|null} The created block or null
-     */
-    insertBlock(tagName, content = '', beforeBlock = null) {
-        const newBlock = document.createElement(tagName);
-        if (content) {
-            newBlock.textContent = content;
-        }
-
-        if (this.stateManager.commit({
-            type: 'insertElement',
-            element: newBlock,
-            parent: this.editor,
-            before: beforeBlock,
-        })) {
-            return newBlock;
-        }
-        return null;
-    }
 
     /**
      * Remove a block element
@@ -378,7 +355,11 @@ class BlockManager {
 
         // Create new block outside mutation for reusability
         const newBlock = document.createElement(newBlockTag || block.tagName);
-        newBlock.textContent = content;
+        if (content) {
+            newBlock.textContent = content;
+        } else {
+            newBlock.appendChild(document.createElement('br'));
+        }
 
         const success = this.stateManager.commit({
             type: 'splitBlock',
