@@ -166,9 +166,12 @@ See [HISTORY-COMPATIBLE-CODE.md](./HISTORY-COMPATIBLE-CODE.md) for detailed patt
 
 **Best Practice**: Create DOM elements outside mutations when possible, pass them in as parameters.
 
+**Critical Rule**: Avoid creating elements repeatedly in apply/revert - reuse the same DOM elements to maintain identical tree structure during undo/redo operations.
+
 - **Benefits**: Element reuse in revert operations, cleaner mutation logic, better performance
 - **Pattern**: `createElement()` in high-level method, pass element to mutation
 - **Revert**: Reuse existing DOM elements instead of creating new ones
+- **Identity**: Same DOM elements across apply/revert cycles prevents bugs and simplifies implementation
 
 ```javascript
 // GOOD: Create element outside, pass to mutation
@@ -178,5 +181,16 @@ formatBlock(block, tagName) {
         element: block,
         newElement: newElement,
     });
+}
+
+// GOOD: Store and reuse DOM elements in mutations
+apply: (mutation) => {
+    // Store element for revert
+    mutation.removedElement = element;
+    element.remove();
+},
+revert: (mutation) => {
+    // Reuse same DOM element
+    parent.insertBefore(mutation.removedElement, nextSibling);
 }
 ```
