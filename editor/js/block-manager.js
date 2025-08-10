@@ -204,8 +204,8 @@ class BlockManager {
                 mutation.secondBlockContent = secondBlock.textContent;
                 mutation.mergeOffset = firstBlock.textContent.length;
 
-                // Store second block's tag for proper restoration
-                mutation.secondBlockTag = secondBlock.tagName;
+                // Store second block element for reuse in revert
+                mutation.removedSecondBlock = secondBlock;
 
                 // Set caret state for after merge (cursor at merge point where first block ends)
                 mutation.caretStateAfter = CaretState.collapsed(mutation.firstBlockIndex, mutation.mergeOffset);
@@ -213,7 +213,7 @@ class BlockManager {
                 // Merge content
                 firstBlock.textContent = firstBlock.textContent + secondBlock.textContent;
 
-                // Remove second block
+                // Remove second block (but keep reference for revert)
                 secondBlock.remove();
 
                 // Restore caret to merge point immediately after DOM changes
@@ -221,18 +221,17 @@ class BlockManager {
             },
 
             revert: (mutation) => {
-                const { firstBlock, firstBlockContent, secondBlockContent, secondBlockTag } = mutation;
+                const { firstBlock, firstBlockContent, secondBlockContent, removedSecondBlock } = mutation;
 
                 // Restore original content
                 firstBlock.textContent = firstBlockContent;
 
-                // Re-create second block with correct tag
-                const secondBlock = document.createElement(secondBlockTag);
-                secondBlock.textContent = secondBlockContent;
-                mutation.secondBlock = secondBlock; // Update reference
+                // Reuse the removed second block element
+                removedSecondBlock.textContent = secondBlockContent;
+                mutation.secondBlock = removedSecondBlock; // Update reference
 
                 // Re-insert second block
-                firstBlock.parentNode.insertBefore(secondBlock, firstBlock.nextSibling);
+                firstBlock.parentNode.insertBefore(removedSecondBlock, firstBlock.nextSibling);
             },
         });
     }
