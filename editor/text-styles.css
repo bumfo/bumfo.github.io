@@ -43,11 +43,6 @@ article {
     box-shadow: none;
 }
 
-#history-tracker {
-    user-select: none;
-    pointer-events: none;
-}
-
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
@@ -92,4 +87,15 @@ h6 {
 
 h5, h6, p {
     margin-bottom: 1.1rem;
+}
+
+@media (max-width: 760px) {
+    body {
+        padding-top: 4.4rem;
+        padding-left: 4rem;
+        padding-right: 4rem;
+    }
+    article {
+
+    }
 }

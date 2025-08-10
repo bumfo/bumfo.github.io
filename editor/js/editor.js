@@ -12,6 +12,9 @@ class Editor {
         this.contentManager = new ContentManager(this.stateManager);
         this.historyManager = new HistoryManager(this.stateManager, editorElement);
 
+        // Create bottom editing bar
+        this.createEditingBar();
+
         // Set up event listeners
         this.setupEventListeners();
 
@@ -19,6 +22,139 @@ class Editor {
         this.p4 = document.getElementById('p4');
     }
 
+    /**
+     * Create the bottom editing bar
+     */
+    createEditingBar() {
+        // Create toolbar container
+        this.toolbar = document.createElement('div');
+        this.toolbar.className = 'editor-toolbar';
+        
+        // Format buttons group
+        const formatGroup = document.createElement('div');
+        formatGroup.className = 'toolbar-group';
+        
+        const formatButtons = [
+            { tag: 'H1', label: 'H1' },
+            { tag: 'H2', label: 'H2' },
+            { tag: 'H3', label: 'H3' },
+            { tag: 'P', label: 'P' }
+        ];
+        
+        formatButtons.forEach(({ tag, label }) => {
+            const btn = document.createElement('button');
+            btn.className = 'toolbar-btn format-btn';
+            btn.textContent = label;
+            btn.dataset.format = tag;
+            btn.addEventListener('mousedown', (e) => e.preventDefault());
+            btn.addEventListener('click', () => this.formatCurrentBlock(tag));
+            formatGroup.appendChild(btn);
+        });
+        
+        // Action buttons group
+        const actionGroup = document.createElement('div');
+        actionGroup.className = 'toolbar-group';
+        
+        const splitBtn = document.createElement('button');
+        splitBtn.className = 'toolbar-btn action-btn';
+        splitBtn.textContent = 'Split';
+        splitBtn.addEventListener('mousedown', (e) => e.preventDefault());
+        splitBtn.addEventListener('click', () => this.splitCurrentBlock());
+        
+        const mergeBtn = document.createElement('button');
+        mergeBtn.className = 'toolbar-btn action-btn';
+        mergeBtn.textContent = 'Merge';
+        mergeBtn.addEventListener('mousedown', (e) => e.preventDefault());
+        mergeBtn.addEventListener('click', () => this.mergeWithPrevious());
+        
+        actionGroup.appendChild(splitBtn);
+        actionGroup.appendChild(mergeBtn);
+        
+        // Add groups to toolbar
+        this.toolbar.appendChild(formatGroup);
+        this.toolbar.appendChild(actionGroup);
+        
+        // Add toolbar to body
+        document.body.appendChild(this.toolbar);
+        
+        // Store references for later
+        this.formatButtons = formatGroup.querySelectorAll('.format-btn');
+        this.splitButton = splitBtn;
+        this.mergeButton = mergeBtn;
+        
+        // Update toolbar state initially and on selection change
+        setTimeout(() => this.updateToolbarState(), 0);
+    }
+
+    /**
+     * Format current block to specified tag
+     */
+    formatCurrentBlock(tagName) {
+        const range = Carets.getCurrentRange();
+        if (!range) return;
+        
+        const block = this.blockManager.getBlockForNode(range.startContainer);
+        if (!block) return;
+        
+        this.blockManager.formatBlock(block, tagName);
+        this.updateToolbarState();
+    }
+
+    /**
+     * Split current block at cursor position
+     */
+    splitCurrentBlock() {
+        const range = Carets.getCurrentRange();
+        if (!range || !range.collapsed) return;
+        
+        // TODO: Implement splitBlock functionality
+        console.log('Split block functionality not yet implemented');
+    }
+
+    /**
+     * Merge current block with previous block
+     */
+    mergeWithPrevious() {
+        const range = Carets.getCurrentRange();
+        if (!range) return;
+        
+        const block = this.blockManager.getBlockForNode(range.startContainer);
+        if (!block) return;
+        
+        // TODO: Implement mergeWithPrevious functionality
+        console.log('Merge with previous functionality not yet implemented');
+    }
+
+    /**
+     * Update toolbar state based on current selection
+     */
+    updateToolbarState() {
+        const range = Carets.getCurrentRange();
+        if (!range) return;
+        
+        const block = this.blockManager.getBlockForNode(range.startContainer);
+        if (!block) return;
+        
+        // Update format button states
+        this.formatButtons.forEach(btn => {
+            const format = btn.dataset.format;
+            if (block.tagName === format) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update action button states
+        const blocks = this.blockManager.getAllBlocks();
+        const blockIndex = blocks.indexOf(block);
+        
+        // Disable merge if first block
+        this.mergeButton.disabled = blockIndex === 0;
+        
+        // Split is always enabled for now
+        this.splitButton.disabled = false;
+    }
 
     /**
      * Set up event listeners
@@ -31,6 +167,15 @@ class Editor {
 
         // Mouse events
         this.element.addEventListener('mousedown', this.onMouseDown.bind(this));
+        
+        // Selection change events for toolbar updates
+        this.element.addEventListener('keyup', () => this.updateToolbarState());
+        this.element.addEventListener('mouseup', () => this.updateToolbarState());
+        document.addEventListener('selectionchange', () => {
+            if (Carets.isSelectionInEditor(this.element)) {
+                this.updateToolbarState();
+            }
+        });
 
         // Button events (demo)
         const btn = document.getElementById('btn');
