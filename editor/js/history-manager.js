@@ -23,12 +23,12 @@ class HistoryManager {
         this.tracker = document.createElement('div');
         this.tracker.contentEditable = 'true';
         this.tracker.tabIndex = -1;
+        // position: absolute;
+        // left: -9999px;
+        // width: 1px;
+        // height: 1px;
+        // overflow: hidden;
         this.tracker.style.cssText = `
-            position: absolute;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
             user-select: none;
             pointer-events: none;
         `;
